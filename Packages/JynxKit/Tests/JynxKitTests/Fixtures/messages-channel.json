@@ -1,0 +1,76 @@
+{
+  "ok": true,
+  "messages": [
+    {
+      "id": "29683",
+      "roomId": "eff1bb84-acfb-4ece-b81e-46956bf92a05",
+      "kind": "signal_update",
+      "body": "Closed at 1.083 +20 pips, result +20 pips",
+      "hasMedia": false,
+      "signalId": "b441c290-e091-4363-804d-a9561effe215",
+      "createdAt": "2026-09-27T03:17:42.454Z",
+      "author": {
+        "id": "15de66e0-b65c-4816-8b2b-684ea903b8ae",
+        "displayName": "15de66e0",
+        "staff": true
+      }
+    },
+    {
+      "id": "29682",
+      "roomId": "eff1bb84-acfb-4ece-b81e-46956bf92a05",
+      "kind": "signal",
+      "body": "SELL EURUSD @ 1.085 SL 1.088 TP 1.082",
+      "hasMedia": false,
+      "signalId": "b441c290-e091-4363-804d-a9561effe215",
+      "createdAt": "2026-09-27T03:17:42.441Z",
+      "author": {
+        "id": "15de66e0-b65c-4816-8b2b-684ea903b8ae",
+        "displayName": "15de66e0",
+        "staff": true
+      }
+    },
+    {
+      "id": "29681",
+      "roomId": "eff1bb84-acfb-4ece-b81e-46956bf92a05",
+      "kind": "signal_update",
+      "body": "TP1 hit +150 pips, closed 50%",
+      "hasMedia": false,
+      "signalId": "c21dce15-d7c1-4763-b5be-995129db615e",
+      "createdAt": "2026-09-27T03:17:42.411Z",
+      "author": {
+        "id": "15de66e0-b65c-4816-8b2b-684ea903b8ae",
+        "displayName": "15de66e0",
+        "staff": true
+      }
+    },
+    {
+      "id": "29680",
+      "roomId": "eff1bb84-acfb-4ece-b81e-46956bf92a05",
+      "kind": "signal",
+      "body": "BUY XAUUSD @ 2350 SL 2340 TP 2365/2380",
+      "hasMedia": false,
+      "signalId": "c21dce15-d7c1-4763-b5be-995129db615e",
+      "createdAt": "2026-09-27T03:17:42.365Z",
+      "author": {
+        "id": "15de66e0-b65c-4816-8b2b-684ea903b8ae",
+        "displayName": "15de66e0",
+        "staff": true
+      }
+    },
+    {
+      "id": "29679",
+      "roomId": "eff1bb84-acfb-4ece-b81e-46956bf92a05",
+      "kind": "text",
+      "body": "Morning. Gold looks heavy.",
+      "hasMedia": false,
+      "signalId": null,
+      "createdAt": "2026-09-27T03:17:42.355Z",
+      "author": {
+        "id": "15de66e0-b65c-4816-8b2b-684ea903b8ae",
+        "displayName": "15de66e0",
+        "staff": true
+      }
+    }
+  ],
+  "canPost": "read_only"
+}

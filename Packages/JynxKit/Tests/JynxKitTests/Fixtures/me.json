@@ -1,0 +1,25 @@
+{
+  "ok": true,
+  "user": {
+    "id": "855e2a69-5601-4141-9a0e-44c07aedea6f",
+    "email": "855e2a69@test.local",
+    "displayName": "855e2a69",
+    "role": "member"
+  },
+  "subscriptions": [
+    {
+      "productId": "33fe6107-e215-490d-91b2-b564f8bc73cf",
+      "productName": "P-0mh3f",
+      "kind": "channel",
+      "endsAt": "2026-10-27T03:17:42.350Z",
+      "autoRenew": false,
+      "renewMonths": null,
+      "renewError": null
+    }
+  ],
+  "wallet": {
+    "balance": 0,
+    "withdrawable": 0
+  },
+  "copierEnabled": false
+}

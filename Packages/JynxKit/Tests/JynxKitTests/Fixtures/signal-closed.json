@@ -1,0 +1,35 @@
+{
+  "ok": true,
+  "signal": {
+    "id": "b441c290-e091-4363-804d-a9561effe215",
+    "roomId": "eff1bb84-acfb-4ece-b81e-46956bf92a05",
+    "symbol": "EURUSD",
+    "side": "sell",
+    "market": false,
+    "entry": "1.085",
+    "sl": "1.088",
+    "tps": [
+      "1.082"
+    ],
+    "note": "",
+    "hasChart": false,
+    "status": "closed",
+    "openFraction": "0",
+    "tpHits": [],
+    "slMovedTo": null,
+    "realizedPips": 20,
+    "resultPips": 20,
+    "createdAt": "2026-09-27T03:17:42.441Z",
+    "closedAt": "2026-09-27T03:17:42.454Z",
+    "updates": [
+      {
+        "kind": "close",
+        "price": "1.083",
+        "fraction": "1",
+        "tp": null,
+        "pips": 20,
+        "createdAt": "2026-09-27T03:17:42.454Z"
+      }
+    ]
+  }
+}

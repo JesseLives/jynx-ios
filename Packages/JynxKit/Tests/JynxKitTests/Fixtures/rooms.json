@@ -1,0 +1,47 @@
+{
+  "ok": true,
+  "rooms": [
+    {
+      "id": "eff1bb84-acfb-4ece-b81e-46956bf92a05",
+      "leaderId": "00000000-0000-0000-0000-000000000001",
+      "kind": "channel",
+      "name": "P-0mh3f",
+      "productId": "33fe6107-e215-490d-91b2-b564f8bc73cf",
+      "access": "product",
+      "archived": false,
+      "locked": false,
+      "unread": 5,
+      "last": {
+        "body": "Closed at 1.083 +20 pips, result +20 pips",
+        "createdAt": "2026-09-27T03:17:42.454Z"
+      }
+    },
+    {
+      "id": "7b012753-c84b-446c-aad6-771e86883d41",
+      "leaderId": "00000000-0000-0000-0000-000000000001",
+      "kind": "channel",
+      "name": "P-e1ppd",
+      "productId": "7bd200d9-1bdd-46d2-8aca-277d111446e7",
+      "access": "product",
+      "archived": false,
+      "locked": true,
+      "unread": 0,
+      "last": null
+    },
+    {
+      "id": "a05a8d93-7465-47e3-950e-87f5b6b9c45b",
+      "leaderId": "00000000-0000-0000-0000-000000000001",
+      "kind": "group",
+      "name": "G-fc6h5",
+      "productId": null,
+      "access": "everyone",
+      "archived": false,
+      "locked": false,
+      "unread": 2,
+      "last": {
+        "body": "",
+        "createdAt": "2026-09-27T03:17:42.479Z"
+      }
+    }
+  ]
+}

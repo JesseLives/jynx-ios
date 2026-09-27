@@ -1,0 +1,6 @@
+{
+  "ok": false,
+  "error": "invalid_username",
+  "field": "username",
+  "message": "3–20 letters, numbers or _"
+}
