@@ -32,3 +32,14 @@ import Testing
     var cal = Calendar(identifier: .gregorian); cal.timeZone = TimeZone(identifier: "Asia/Phnom_Penh")!
     #expect(Format.clock(JSON.parseDate("2026-09-27T10:51:00Z")!, calendar: cal) == "17:51")
 }
+
+@Test func updateTones() {
+    #expect(Look.updateTone("TP1 hit +150 pips, closed 50%") == .gain)
+    #expect(Look.updateTone("Closed at 1.083 +20 pips, result +20 pips") == .gain)
+    #expect(Look.updateTone("SL hit -100 pips, result -25 pips") == .loss)
+    #expect(Look.updateTone("SL hit +30 pips, result +80 pips") == .gain)     // a trailed stop can still win
+    #expect(Look.updateTone("Closed 50% at 2370 -12 pips") == .loss)
+    #expect(Look.updateTone("SL moved to breakeven") == .neutral)
+    #expect(Look.updateTone("Signal cancelled") == .neutral)
+    #expect(Look.updateTone("Closed at 2350 0 pips, result 0 pips") == .neutral)
+}

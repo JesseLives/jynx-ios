@@ -10,32 +10,91 @@ struct MessageRow: View {
     let open: (URL) -> Void
 
     var body: some View {
-        switch message.kind {
-        case .signalUpdate:
-            Text(message.body).font(.open(12)).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
-                .padding(.horizontal, 12).padding(.vertical, 4)
-                .background(Theme.mutedBg, in: Capsule()).overlay(Capsule().stroke(Theme.borderSoft))
-                .frame(maxWidth: .infinity).padding(.vertical, 2)
-        case .signal:
-            VStack(alignment: .leading, spacing: 3) {
-                SignalCardView(signal: signal, chartURL: message.signalId.map { api.base.appending(path: "api/signals/\($0)/chart") })
-                Text(Format.clock(message.createdAt)).font(.open(11.5)).foregroundStyle(Theme.muted).padding(.leading, 6)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        default:
-            VStack(alignment: mine ? .trailing : .leading, spacing: 2) {
-                if showAuthor, let name = message.author?.displayName {
-                    HStack(spacing: 5) {
-                        Text(name).font(.open(11.5, .semibold))
-                        if message.author?.staff == true { Text("Team").font(.open(11, .bold)).foregroundStyle(Theme.primary) }
-                    }.foregroundStyle(Theme.muted).padding(.horizontal, 6)
-                }
-                bubble
-            }
-            .frame(maxWidth: .infinity, alignment: mine ? .trailing : .leading)
-            .padding(mine ? .leading : .trailing, 48)
+        if mine {
+            bubble
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .padding(.leading, 48).padding(.vertical, 4)
+        } else {
+            stop
         }
     }
+
+    // MARK: A stop on the line
+
+    private var stop: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Circle().fill(dotColor).frame(width: 12, height: 12)
+                .overlay(Circle().stroke(Theme.bg, lineWidth: 2))
+                .padding(.top, 4)
+            VStack(alignment: .leading, spacing: 6) {
+                meta
+                content
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.bottom, 10)
+        .background(alignment: .topLeading) {
+            Rectangle().fill(Theme.borderSoft).frame(width: 2)
+                .padding(.leading, 5).padding(.top, 18).padding(.bottom, -12)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private var tone: Look.Tone { message.kind == .signalUpdate ? Look.updateTone(message.body) : .neutral }
+
+    private var dotColor: Color {
+        switch message.kind {
+        case .signalUpdate: tone == .gain ? Theme.up : tone == .loss ? Theme.down : Theme.muted
+        case .signal: Theme.primary
+        default: message.author?.staff ?? true ? Theme.primary : Theme.muted
+        }
+    }
+
+    @ViewBuilder private var meta: some View {
+        let time = Text(" · \(Format.clock(message.createdAt))").foregroundColor(Theme.muted)
+        switch message.kind {
+        case .signalUpdate:
+            (Text(message.body).fontWeight(.bold).foregroundColor(tone == .gain ? Theme.up : tone == .loss ? Theme.down : Theme.fg) + time)
+                .font(.open(13.5))
+        case .signal:
+            (Text("Signal").fontWeight(.bold).foregroundColor(Theme.fg) + time).font(.open(13.5))
+        default:
+            HStack(spacing: 5) {
+                Text(message.author?.displayName ?? "Jynx").font(.open(13.5, .bold)).foregroundStyle(Theme.fg)
+                if message.author?.staff ?? true {
+                    Text("Team").font(.open(11, .bold)).foregroundStyle(Theme.primary)
+                        .padding(.horizontal, 5).padding(.vertical, 1).background(Theme.primarySoft, in: RoundedRectangle(cornerRadius: 5))
+                }
+                Text(Format.clock(message.createdAt)).font(.open(12.5)).foregroundStyle(Theme.muted)
+            }
+        }
+    }
+
+    @ViewBuilder private var content: some View {
+        switch message.kind {
+        case .signalUpdate: EmptyView()
+        case .signal:
+            SignalCardView(signal: signal, chartURL: message.signalId.map { api.base.appending(path: "api/signals/\($0)/chart") })
+        case .other:
+            Text("Update the app to see this message.").font(.open(14)).foregroundStyle(Theme.muted)
+        default:
+            if message.kind == .image || message.hasMedia { picture }
+            if !message.body.isEmpty {
+                Text(message.body).font(.open(15)).foregroundStyle(Theme.fg).textSelection(.enabled)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    private var picture: some View {
+        let url = api.mediaURL(messageId: message.id)
+        return AsyncImage(url: url) { img in img.resizable().scaledToFill() } placeholder: { Theme.raised }
+            .frame(width: 240, height: 200).clipped().clipShape(RoundedRectangle(cornerRadius: 14))
+            .contentShape(Rectangle()).onTapGesture { open(url) }
+            .accessibilityLabel("Picture").accessibilityAddTraits(.isButton)
+    }
+
+    // MARK: The member's own message
 
     private var shape: UnevenRoundedRectangle {
         mine ? UnevenRoundedRectangle(topLeadingRadius: 18, bottomLeadingRadius: 18, bottomTrailingRadius: 6, topTrailingRadius: 18)

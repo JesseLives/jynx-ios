@@ -25,7 +25,7 @@ struct CopierView: View {
             .toolbar(.hidden, for: .navigationBar)
             .refreshable { await load() }
             .task(id: state?.account?.status) { await poll() }
-            .sheet(isPresented: $buying) { PlansView(startKind: .copier, closable: true) }
+            .sheet(isPresented: $buying, onDismiss: { Task { await load() } }) { PlansView(startKind: .copier, closable: true) }
             .confirmationDialog("Disconnect this account?", isPresented: $confirmDisconnect, titleVisibility: .visible) {
                 Button("Disconnect", role: .destructive) { Task { await disconnect() } }
             } message: { Text("Open copied trades stay open in MT5.") }
@@ -61,7 +61,7 @@ struct CopierView: View {
                     if Features.sells { Button("Renew") { buying = true }.font(.open(15, .bold)) }
                 }
             }
-            if a.status == .online { SizingChips(account: a) { await save($0) } }
+            if a.status == .online { SizingChips(account: a, locked: busy) { await save($0) } }
             if let error { Text(error).font(.open(14)).foregroundStyle(Theme.down) }
             if !s.copies.isEmpty {
                 VStack(spacing: 0) {
@@ -83,14 +83,15 @@ struct CopierView: View {
     }
 
     private func flip() async {
-        guard let a = state?.account, !busy else { return }
-        busy = true
+        guard let a = state?.account else { return }
         if await save(CopierSettings(a, enabled: !a.enabled)) { flips += 1 }
-        busy = false
     }
 
     @discardableResult
     private func save(_ next: CopierSettings) async -> Bool {
+        guard !busy else { return false }
+        busy = true
+        defer { busy = false }
         error = nil
         do {
             try await session.api.copierSettings(mode: next.mode, fixedLot: next.fixedLot, riskPct: next.riskPct, maxLot: next.maxLot, enabled: next.enabled)
@@ -167,6 +168,7 @@ private struct PowerButton: View {
 
 private struct SizingChips: View {
     let account: CopierAccount
+    let locked: Bool
     let save: (CopierSettings) async -> Bool
     @State private var editing: CopierInput.Field?
     @State private var text = ""
@@ -180,9 +182,10 @@ private struct SizingChips: View {
                      account.mode == .fixed ? "Lot" : "Risk", field: account.mode == .fixed ? .lot : .risk)
                 chip(account.maxLot.formatted(.number.precision(.fractionLength(2))), "Max", field: .max)
                 Menu {
-                    Button("Fixed lot") { Task { var s = CopierSettings(account); s.mode = .fixed; _ = await save(s) } }
-                    Button("Risk %") { Task { var s = CopierSettings(account); s.mode = .risk; _ = await save(s) } }
+                    Button("Fixed lot") { editing = nil; Task { var s = CopierSettings(account); s.mode = .fixed; _ = await save(s) } }
+                    Button("Risk %") { editing = nil; Task { var s = CopierSettings(account); s.mode = .risk; _ = await save(s) } }
                 } label: { chipFace(account.mode == .fixed ? "Fixed" : "Risk", "Size", on: false) }
+                .disabled(locked)
             }
             if let field = editing {
                 VStack(alignment: .leading, spacing: 6) {
@@ -194,7 +197,7 @@ private struct SizingChips: View {
                             .background(Theme.raised, in: RoundedRectangle(cornerRadius: 14)).overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border))
                         Button(busy ? "Saving" : "Save") { Task { await submit(field) } }
                             .font(.open(15, .bold)).foregroundStyle(.white).padding(.horizontal, 18).frame(minHeight: 48)
-                            .background(Theme.primary, in: Capsule()).disabled(busy)
+                            .background(Theme.primary, in: Capsule()).disabled(busy || locked)
                     }
                     if let problem { Text(problem).font(.open(13.5)).foregroundStyle(Theme.down) }
                 }
