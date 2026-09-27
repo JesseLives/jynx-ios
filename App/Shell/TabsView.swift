@@ -8,7 +8,7 @@ struct TabsView: View {
     var body: some View {
         TabView {
             ChatsListView().tabItem { Label("Chats", systemImage: "bubble.left.and.bubble.right") }
-            SoonView(title: "Charts").tabItem { Label("Charts", systemImage: "chart.xyaxis.line") }
+            ChartsView().tabItem { Label("Charts", systemImage: "chart.xyaxis.line") }
             SoonView(title: "Plans").tabItem { Label("Plans", systemImage: "square.stack") }
             SoonView(title: "Wallet").tabItem { Label("Wallet", systemImage: "wallet.pass") }
             ProfileView().tabItem { Label("Profile", systemImage: "person") }
