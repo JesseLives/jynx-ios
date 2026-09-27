@@ -44,8 +44,7 @@ struct MessageRow: View {
 
     private var dotColor: Color {
         switch message.kind {
-        case .signalUpdate: tone == .gain ? Theme.up : tone == .loss ? Theme.down : Theme.muted
-        case .signal: Theme.primary
+        case .signalUpdate, .signal: Theme.primary
         default: message.author?.staff ?? true ? Theme.primary : Theme.muted
         }
     }
