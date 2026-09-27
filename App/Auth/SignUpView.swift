@@ -3,6 +3,7 @@ import JynxKit
 
 struct SignUpView: View {
     @Environment(Session.self) private var session
+    @Environment(\.dismiss) private var dismiss
     @State private var username = ""
     @State private var email = ""
     @State private var password = ""
@@ -12,10 +13,13 @@ struct SignUpView: View {
     @State private var busy = false
     @FocusState private var focus: Int?
 
+    private var incomplete: Bool { [username, email, password, confirm].contains(where: \.isEmpty) }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("Create your account").font(.open(22, .semibold)).foregroundStyle(Theme.fg).padding(.top, 24)
+                Wordmark().frame(maxWidth: .infinity).padding(.top, 36).padding(.bottom, 12)
+                AuthHeading(title: "Create your account", subtitle: "Takes less than a minute.")
                 Field(label: "Username", text: $username, placeholder: "Pick a username", kind: .username, error: fieldErrors["username"],
                       focus: $focus, tag: 0) { focus = 1 }
                 Field(label: "Email", text: $email, placeholder: "you@example.com", kind: .email, error: fieldErrors["email"],
@@ -23,12 +27,20 @@ struct SignUpView: View {
                 Field(label: "Password", text: $password, placeholder: "At least 8 characters", kind: .newPassword, error: fieldErrors["password"],
                       focus: $focus, tag: 2) { focus = 3 }
                 Field(label: "Confirm password", text: $confirm, placeholder: "Repeat your password", kind: .newPassword, error: fieldErrors["confirm"],
-                      focus: $focus, tag: 3, submitLabel: .go) { if ![username, email, password, confirm].contains(where: \.isEmpty) { Task { await submit() } } }
+                      focus: $focus, tag: 3, submitLabel: .go) { if !incomplete { Task { await submit() } } }
                 if let error { Text(error).font(.open(14)).foregroundStyle(Theme.down) }
                 PrimaryButton(title: "Create account", busy: busy) { Task { await submit() } }
-                    .disabled(username.isEmpty || email.isEmpty || password.isEmpty || confirm.isEmpty)
-            }.padding(.horizontal, 20)
-        }.background(Theme.bg).navigationBarTitleDisplayMode(.inline)
+                    .disabled(incomplete).opacity(incomplete ? 0.5 : 1).padding(.top, 4)
+                (Text("By signing up you agree to our ").foregroundColor(Theme.muted)
+                    + Text("[Terms of Service](https://signals.justsal.xyz/legal/terms)").underline())
+                    .font(.open(13.5)).tint(Theme.fg).multilineTextAlignment(.center).frame(maxWidth: .infinity)
+                AuthSwitch(question: "Already have an account?", action: "Sign in") { dismiss() }
+            }
+            .padding(.horizontal, 24).padding(.bottom, 24)
+        }
+        .scrollDismissesKeyboard(.interactively)
+        .background(Theme.bg)
+        .toolbar(.hidden, for: .navigationBar)
     }
 
     private func submit() async {

@@ -76,7 +76,7 @@ struct WalletView: View {
                     .overlay(Circle().stroke(filled ? Color.clear : Theme.borderSoft))
                     .overlay(Image(systemName: symbol).font(.system(size: 20, weight: .semibold)).foregroundStyle(filled ? .white : Theme.primary))
                 Text(title).font(.open(15, .bold)).foregroundStyle(Theme.fg)
-            }.frame(maxWidth: .infinity)
+            }.frame(maxWidth: .infinity).contentShape(Rectangle())
         }.buttonStyle(.plain)
     }
 

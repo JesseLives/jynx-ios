@@ -10,7 +10,7 @@ struct JynxApp: App {
         WindowGroup {
             Group {
                 switch session.state {
-                case .loading: ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity).background(Theme.bg)
+                case .loading: SplashView()
                 case .offline: OfflineView()
                 case .signedOut: SignInView()
                 case .signedIn: TabsView()

@@ -39,27 +39,19 @@ struct ProfileView: View {
                         }
                     }
                     CardGroup {
-                        Row(symbol: "speaker.wave.2", title: "Alarm Sound") {
-                            Menu {
-                                Picker("Alarm Sound", selection: $alarm) { ForEach(Alarm.Sound.allCases) { Text($0.label).tag($0) } }
-                            } label: {
-                                HStack(spacing: 6) {
-                                    Text(alarm.label).font(.open(15)).foregroundStyle(Theme.muted)
-                                    Image(systemName: "chevron.up.chevron.down").font(.system(size: 11, weight: .semibold)).foregroundStyle(Theme.muted)
-                                }
-                            }
+                        Menu {
+                            Picker("Alarm Sound", selection: $alarm) { ForEach(Alarm.Sound.allCases) { Text($0.label).tag($0) } }
+                        } label: {
+                            Row(symbol: "speaker.wave.2", title: "Alarm Sound") { MenuValue(text: alarm.label) }
                         }
+                        .buttonStyle(.plain)
                         Divider().padding(.leading, 68)
-                        Row(symbol: "circle.lefthalf.filled", title: "Appearance") {
-                            Menu {
-                                Picker("Appearance", selection: $appearance) { ForEach(Appearance.allCases) { Text($0.label).tag($0) } }
-                            } label: {
-                                HStack(spacing: 6) {
-                                    Text(appearance.label).font(.open(15)).foregroundStyle(Theme.muted)
-                                    Image(systemName: "chevron.up.chevron.down").font(.system(size: 11, weight: .semibold)).foregroundStyle(Theme.muted)
-                                }
-                            }
+                        Menu {
+                            Picker("Appearance", selection: $appearance) { ForEach(Appearance.allCases) { Text($0.label).tag($0) } }
+                        } label: {
+                            Row(symbol: "circle.lefthalf.filled", title: "Appearance") { MenuValue(text: appearance.label) }
                         }
+                        .buttonStyle(.plain)
                     }
                     Button { confirmLogout = true } label: {
                         Text("Log out").font(.open(17, .bold)).foregroundStyle(Theme.down)
@@ -167,7 +159,18 @@ private struct Row<Trailing: View>: View {
             trailing
         }
         .padding(.horizontal, 14).padding(.vertical, 12)
+        .contentShape(Rectangle())
     }
 }
 
 private struct Extend: Identifiable { let id: String }
+
+private struct MenuValue: View {
+    let text: String
+    var body: some View {
+        HStack(spacing: 6) {
+            Text(text).font(.open(15)).foregroundStyle(Theme.muted)
+            Image(systemName: "chevron.up.chevron.down").font(.system(size: 11, weight: .semibold)).foregroundStyle(Theme.muted)
+        }
+    }
+}

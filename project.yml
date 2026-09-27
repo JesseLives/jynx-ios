@@ -28,7 +28,7 @@ targets:
         CFBundleDisplayName: Jynx
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
-        UILaunchScreen: {}
+        UILaunchScreen: { UIColorName: LaunchBackground }
         UIAppFonts: [OpenSans.ttf]
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         ITSAppUsesNonExemptEncryption: false

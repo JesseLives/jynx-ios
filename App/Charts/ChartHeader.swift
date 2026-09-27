@@ -49,7 +49,7 @@ struct TimeframePill: View {
                 Button { withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { selection = tf } } label: {
                     Text(tf.label).font(.open(14, tf == selection ? .bold : .semibold))
                         .foregroundStyle(tf == selection ? Theme.fg : Theme.muted)
-                        .frame(maxWidth: .infinity).frame(height: 44)
+                        .frame(maxWidth: .infinity).frame(height: 44).contentShape(Rectangle())
                         .background {
                             if tf == selection {
                                 Capsule().fill(Theme.bg).shadow(color: .black.opacity(0.08), radius: 3, y: 1)

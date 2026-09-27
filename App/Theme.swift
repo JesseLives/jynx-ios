@@ -71,6 +71,27 @@ struct PageTitle: View {
     }
 }
 
+struct Wordmark: View {
+    var size: CGFloat = 34
+    var body: some View {
+        (Text("Jynx").foregroundColor(Theme.fg) + Text(".").foregroundColor(Theme.primary))
+            .font(.open(size, .heavy)).tracking(-size * 0.04)
+            .accessibilityLabel("Jynx")
+    }
+}
+
+struct SplashView: View {
+    @State private var slow = false
+    var body: some View {
+        VStack(spacing: 22) {
+            Wordmark(size: 46)
+            ProgressView().opacity(slow ? 1 : 0).animation(.easeIn(duration: 0.3), value: slow)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity).background(Theme.bg)
+        .task { try? await Task.sleep(for: .milliseconds(700)); slow = true }
+    }
+}
+
 struct VipBadge: View {
     var body: some View {
         Text("VIP").font(.open(11, .heavy)).tracking(0.3).foregroundStyle(Theme.primary)
