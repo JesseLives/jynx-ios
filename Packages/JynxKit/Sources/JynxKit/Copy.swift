@@ -24,7 +24,7 @@ public enum Copy {
     public static func verdict(_ v: PostVerdict) -> String? {
         switch v {
         case .ok: nil
-        case .readOnly: codes["read_only"]
+        case .readOnly: "Only the team posts here."
         case .muted: codes["muted"]
         case .banned: codes["banned"]
         case .noAccess, .other: "You can't post here."

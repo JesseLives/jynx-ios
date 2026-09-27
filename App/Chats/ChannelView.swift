@@ -6,6 +6,7 @@ struct ChannelView: View {
     @Environment(Session.self) private var session
     @Environment(Live.self) private var live
     @State private var timeline = Timeline()
+    @State private var signals: [String: Signal] = [:]
     @State private var verdict: PostVerdict = .ok
     @State private var loaded = false
     @State private var loadingOlder = false
@@ -18,7 +19,7 @@ struct ChannelView: View {
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 6) {
                     if ready && !timeline.reachedStart {
                         ProgressView().frame(maxWidth: .infinity).padding(8)
                             .onAppear { Task { await older() } }
@@ -27,24 +28,30 @@ struct ChannelView: View {
                         Text("No messages yet.").font(.open(15)).foregroundStyle(Theme.muted)
                             .frame(maxWidth: .infinity).padding(.top, 40)
                     }
-                    ForEach(timeline.messages) { m in
-                        MessageRow(message: m, roomVersion: live.version(of: room.id),
-                                   mediaURL: session.api.mediaURL(messageId: m.id)) { viewing = $0 }
+                    let messages = timeline.messages
+                    ForEach(Array(messages.enumerated()), id: \.element.id) { i, m in
+                        let day = Format.day(m.createdAt)
+                        if i == 0 || Format.day(messages[i - 1].createdAt) != day { DayChip(text: day) }
+                        MessageRow(message: m, mine: m.author != nil && m.author?.id == session.me?.user.id,
+                                   showAuthor: room.kind == .group && m.author?.id != session.me?.user.id,
+                                   signal: m.signalId.flatMap { signals[$0] }, api: session.api) { viewing = $0 }
                             .id(m.id)
                     }
                     Color.clear.frame(height: 1).id(bottom)
                         .onAppear { pinned = true; Task { await markRead() } }
                         .onDisappear { pinned = false }
                 }
-                .padding(.horizontal, 12).padding(.vertical, 8)
+                .padding(.horizontal, 14).padding(.vertical, 8)
             }
             .defaultScrollAnchor(.bottom)
+            .scrollDismissesKeyboard(.interactively)
             .background(Theme.bg)
             .safeAreaInset(edge: .top, spacing: 0) { ReconnectingLine() }
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 if let reason = Copy.verdict(verdict) {
-                    Text(reason).font(.open(14)).foregroundStyle(Theme.muted)
-                        .frame(maxWidth: .infinity).padding(12).background(Theme.card)
+                    Text(reason).font(.open(13)).foregroundStyle(Theme.muted)
+                        .frame(maxWidth: .infinity).padding(.horizontal, 16).padding(.vertical, 14)
+                        .background(Theme.card).overlay(alignment: .top) { Divider() }
                 } else if loaded {
                     Composer { text in try await send(text, proxy) }
                 }
@@ -56,19 +63,50 @@ struct ChannelView: View {
             }
             .task(id: live.version(of: room.id)) { await latest(proxy) }
         }
-        .navigationTitle(room.name).navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                HStack(spacing: 10) {
+                    RoomAvatar(name: room.name, small: true)
+                    VStack(alignment: .leading, spacing: 0) {
+                        HStack(spacing: 6) {
+                            Text(room.name).font(.open(15, .bold)).foregroundStyle(Theme.fg).lineLimit(1)
+                            if room.kind == .channel { VipBadge() }
+                        }
+                        Text(room.kind == .group ? "Group" : "Channel").font(.open(11.5)).foregroundStyle(Theme.muted)
+                    }
+                    Spacer(minLength: 0)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+        .toolbarBackground(Theme.bg, for: .navigationBar)
         .fullScreenCover(item: $viewing) { ImageViewer(url: $0) }
+    }
+
+    private func loadSignals(_ page: [Message], refresh: Bool) async {
+        let inPage = Set(page.compactMap(\.signalId))
+        let running = refresh ? Set(signals.values.filter { $0.status == .running }.map(\.id)) : []
+        let wanted = inPage.filter { signals[$0] == nil }.union(running)
+        guard !wanted.isEmpty else { return }
+        let api = session.api
+        await withTaskGroup(of: Signal?.self) { group in
+            for id in wanted { group.addTask { try? await api.signal(id: id) } }
+            for await s in group { if let s { signals[s.id] = s } }
+        }
     }
 
     private func latest(_ proxy: ScrollViewProxy) async {
         do {
             let page = try await session.api.messages(room: room.id)
+            await loadSignals(page.messages, refresh: loaded)
             let first = !loaded
             let grew = page.messages.first?.id != timeline.newestId
             timeline.applyLatest(page.messages); verdict = page.canPost; loaded = true; error = nil
             if first { proxy.scrollTo(bottom, anchor: .bottom); await Task.yield(); ready = true }
             else if grew && pinned { withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo(bottom, anchor: .bottom) } }
             if pinned { await markRead() }
+        } catch is CancellationError {
         } catch { session.handle(error); if !loaded { self.error = Copy.error(error) } }
     }
 
@@ -78,6 +116,7 @@ struct ChannelView: View {
         defer { loadingOlder = false }
         do {
             let page = try await session.api.messages(room: room.id, before: anchor)
+            await loadSignals(page.messages, refresh: false)
             timeline.applyOlder(page.messages)
         } catch { session.handle(error) }
     }

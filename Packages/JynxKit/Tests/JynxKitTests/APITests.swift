@@ -62,8 +62,13 @@ func api(_ t: StubTransport) -> API { API(base: URL(string: "https://signals.jus
 
 @Test func verdictCopy() {
     #expect(Copy.verdict(.ok) == nil)
-    #expect(Copy.verdict(.readOnly) == "Only the team posts in this channel.")
+    #expect(Copy.verdict(.readOnly) == "Only the team posts here.")
     #expect(Copy.verdict(.muted) == "You are muted in this group for now.")
     #expect(Copy.verdict(.banned) == "You are banned from this group.")
     #expect(Copy.verdict(.other) == "You can't post here.")
+}
+
+@Test func aCancelledRequestIsCancellationNotOffline() async {
+    let t = StubTransport(); t.fails = URLError(.cancelled)
+    await #expect(throws: CancellationError.self) { try await api(t).rooms() }
 }

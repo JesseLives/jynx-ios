@@ -59,7 +59,7 @@ public struct API: Sendable {
                             query: [String: String] = [:]) async throws -> T {
         let data: Data, res: HTTPURLResponse
         do { (data, res) = try await transport.send(request(method, path, body, query: query)) }
-        catch is URLError { throw APIError.offline }
+        catch let e as URLError { throw e.code == .cancelled ? CancellationError() : APIError.offline }
         if (200..<300).contains(res.statusCode) {
             do { return try JSON.decoder().decode(T.self, from: data) } catch { throw APIError.unreadable }
         }
