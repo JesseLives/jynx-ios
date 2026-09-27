@@ -25,6 +25,7 @@ public enum JSONValue: Encodable, Sendable, ExpressibleByStringLiteral, Expressi
 
 private struct ErrorBody: Decodable { let error: String; let field: String?; let message: String? }
 private struct EndsAt: Decodable { let endsAt: Date? }
+private struct NewId: Decodable { let id: String }
 private struct Nothing: Decodable {}
 
 public struct API: Sendable {
@@ -86,6 +87,16 @@ public struct API: Sendable {
         let _: Nothing = try await call("POST", "/api/wallet", ["action": "auto_renew", "productId": .string(productId), "on": .bool(on)])
     }
 
+    public func payManually(fields: [(String, String)], receipt: Data?) async throws -> String {
+        let boundary = "jynx-\(UUID().uuidString)"
+        let file = receipt.map { Multipart.File(name: "receipt", filename: "receipt.\(Receipt.mime(of: $0) == "image/png" ? "png" : "jpg")",
+                                                mime: Receipt.mime(of: $0) ?? "image/jpeg", data: $0) }
+        var r = request("POST", "/api/payments")
+        r.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        r.httpBody = Multipart.body(fields: fields, file: file, boundary: boundary)
+        return (try await perform(r) as NewId).id
+    }
+
     public func mediaURL(messageId: String) -> URL { base.appending(path: "api/media/\(messageId)") }
 
     func request(_ method: String, _ path: String, _ body: [String: JSONValue]? = nil, query: [String: String] = [:]) -> URLRequest {
@@ -103,8 +114,12 @@ public struct API: Sendable {
 
     func call<T: Decodable>(_ method: String, _ path: String, _ body: [String: JSONValue]? = nil,
                             query: [String: String] = [:]) async throws -> T {
+        try await perform(request(method, path, body, query: query))
+    }
+
+    func perform<T: Decodable>(_ r: URLRequest) async throws -> T {
         let data: Data, res: HTTPURLResponse
-        do { (data, res) = try await transport.send(request(method, path, body, query: query)) }
+        do { (data, res) = try await transport.send(r) }
         catch let e as URLError { throw e.code == .cancelled ? CancellationError() : APIError.offline }
         if (200..<300).contains(res.statusCode) {
             do { return try JSON.decoder().decode(T.self, from: data) } catch { throw APIError.unreadable }
