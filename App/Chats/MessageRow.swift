@@ -10,7 +10,7 @@ struct MessageRow: View {
     let open: (URL) -> Void
 
     var body: some View {
-        if mine {
+        if mine && message.kind != .signal && message.kind != .signalUpdate {
             bubble
                 .frame(maxWidth: .infinity, alignment: .trailing)
                 .padding(.leading, 48).padding(.vertical, 4)
