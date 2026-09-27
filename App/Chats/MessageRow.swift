@@ -27,7 +27,7 @@ struct MessageRow: View {
                 if showAuthor, let name = message.author?.displayName {
                     HStack(spacing: 5) {
                         Text(name).font(.open(11.5, .semibold))
-                        if message.author?.staff == true { Text("Team").font(.open(10.5, .bold)).foregroundStyle(Theme.primary) }
+                        if message.author?.staff == true { Text("Team").font(.open(11, .bold)).foregroundStyle(Theme.primary) }
                     }.foregroundStyle(Theme.muted).padding(.horizontal, 6)
                 }
                 bubble
@@ -55,7 +55,7 @@ struct MessageRow: View {
             } else if !message.body.isEmpty {
                 Text(message.body).font(.open(15)).foregroundStyle(mine ? .white : Theme.fg).textSelection(.enabled)
             }
-            Text(Format.clock(message.createdAt)).font(.open(10.5)).monospacedDigit()
+            Text(Format.clock(message.createdAt)).font(.open(11)).monospacedDigit()
                 .foregroundStyle(mine ? Color.white.opacity(0.78) : Theme.muted)
         }
         .padding(.horizontal, 12).padding(.top, 8).padding(.bottom, 6)

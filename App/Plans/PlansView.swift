@@ -154,7 +154,7 @@ struct Segmented<T: Hashable>: View {
                 Button { withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { selection = value } } label: {
                     Text(label).font(.open(15, value == selection ? .bold : .semibold))
                         .foregroundStyle(value == selection ? Theme.fg : Theme.muted)
-                        .frame(maxWidth: .infinity).frame(height: 42)
+                        .frame(maxWidth: .infinity).frame(height: 44)
                         .background {
                             if value == selection {
                                 Capsule().fill(Theme.bg).shadow(color: .black.opacity(0.08), radius: 3, y: 1)
@@ -165,6 +165,7 @@ struct Segmented<T: Hashable>: View {
             }
         }
         .padding(4).background(Theme.mutedBg, in: Capsule())
+        .sensoryFeedback(.selection, trigger: selection)
     }
 }
 

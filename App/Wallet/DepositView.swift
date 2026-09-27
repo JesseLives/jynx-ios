@@ -22,7 +22,7 @@ struct DepositView: View {
             HStack(spacing: 10) {
                 ForEach([1000, 5000, 10000], id: \.self) { c in
                     Button("+\(Money.dollars(c).replacingOccurrences(of: ".00", with: ""))") { amount.add(cents: c); error = nil }
-                        .font(.open(15, .heavy)).foregroundStyle(Theme.fg).padding(.horizontal, 16).frame(height: 40)
+                        .font(.open(15, .heavy)).foregroundStyle(Theme.fg).padding(.horizontal, 16).frame(height: 44)
                         .background(Theme.card, in: Capsule()).overlay(Capsule().stroke(Theme.borderSoft))
                 }
             }

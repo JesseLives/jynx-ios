@@ -19,6 +19,7 @@ struct JynxApp: App {
             .environment(session)
             .preferredColorScheme(appearance.scheme)
             .tint(Theme.primary)
+            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
             .task { await session.start() }
             .onChange(of: phase) { if phase == .active && session.state == .offline { Task { await session.refreshMe() } } }
         }

@@ -75,7 +75,7 @@ struct ProfileView: View {
                 Row(symbol: "square.stack.3d.up", title: s.productName, subtitle: until(s.endsAt)) {
                     if Features.sells {
                         Button("Extend") { extending = s.productId }
-                            .font(.open(15, .bold)).foregroundStyle(.white).padding(.horizontal, 16).frame(height: 38)
+                            .font(.open(15, .bold)).foregroundStyle(.white).padding(.horizontal, 16).frame(height: 44)
                             .background(Theme.primary, in: Capsule())
                     }
                 }

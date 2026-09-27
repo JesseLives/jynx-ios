@@ -37,6 +37,15 @@ struct CandleCanvas: View {
                 .onTapGesture(count: 2) { withAnimation(.easeOut(duration: 0.25)) { viewport = Viewport(barWidth: vp.barWidth) } }
         }
         .background(background)
+        .accessibilityElement()
+        .accessibilityLabel(summary)
+        .accessibilityHint("Drag to scroll back, pinch to zoom.")
+    }
+
+    private var summary: String {
+        guard let last = bars.last else { return "Chart, loading" }
+        let p = (lastPrice ?? last.c).formatted(.number.precision(.fractionLength(2)))
+        return "XAUUSD chart, \(timeframe.label) candles, last price \(p)" + (lines.isEmpty ? "" : ", with the team signal's levels")
     }
 
     // MARK: Gestures
@@ -153,7 +162,7 @@ struct CandleCanvas: View {
                 tri.addLine(to: CGPoint(x: cx + s, y: anchorY + dir * s * 1.4)); tri.closeSubpath()
                 plot.fill(tri, with: .color(m.color))
                 if let text = m.text {
-                    plot.draw(Text(text).font(.open(10, .heavy)).foregroundStyle(m.color),
+                    plot.draw(Text(text).font(.open(11, .heavy)).foregroundStyle(m.color),
                               at: CGPoint(x: cx, y: anchorY + dir * (s * 1.4 + 8)), anchor: .center)
                 }
             case .dot: plot.fill(Path(ellipseIn: CGRect(x: cx - 3, y: anchorY, width: 6, height: 6)), with: .color(m.color))
@@ -167,7 +176,7 @@ struct CandleCanvas: View {
             let dash: [CGFloat] = l.dash == .dashed ? [6, 4] : l.dash == .dotted ? [2, 3] : []
             plot.stroke(path, with: .color(l.color), style: StrokeStyle(lineWidth: l.width, dash: dash))
             if showTitle[k] {
-                plot.draw(Text(l.title).font(.open(10.5, .bold)).foregroundStyle(l.color),
+                plot.draw(Text(l.title).font(.open(11, .bold)).foregroundStyle(l.color),
                           at: CGPoint(x: plotW - 6, y: y(l.price) - 3), anchor: .bottomTrailing)
             }
             tag(&ctx, price: l.price, y: y(l.price), color: l.color, decimals: decimals, plotW: plotW)

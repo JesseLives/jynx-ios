@@ -136,7 +136,7 @@ struct SignalCardView: View {
 
     private func tile<V: View>(_ label: String, @ViewBuilder value: () -> V) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(label).font(.open(9, .heavy)).tracking(0.5).foregroundStyle(Theme.muted).lineLimit(1)
+            Text(label).font(.open(11, .heavy)).tracking(0.5).foregroundStyle(Theme.muted).lineLimit(1)
             value().font(.open(13, .bold)).foregroundStyle(Theme.fg).monospacedDigit().lineLimit(1).minimumScaleFactor(0.8)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

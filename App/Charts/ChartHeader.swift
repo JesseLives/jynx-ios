@@ -46,7 +46,7 @@ struct TimeframePill: View {
                 Button { withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { selection = tf } } label: {
                     Text(tf.label).font(.open(14, tf == selection ? .bold : .semibold))
                         .foregroundStyle(tf == selection ? Theme.fg : Theme.muted)
-                        .frame(maxWidth: .infinity).frame(height: 34)
+                        .frame(maxWidth: .infinity).frame(height: 44)
                         .background {
                             if tf == selection {
                                 Capsule().fill(Theme.bg).shadow(color: .black.opacity(0.08), radius: 3, y: 1)
@@ -59,6 +59,8 @@ struct TimeframePill: View {
         }
         .padding(4)
         .background(Theme.mutedBg, in: Capsule())
+        .sensoryFeedback(.selection, trigger: selection)
+        .accessibilityElement(children: .contain).accessibilityLabel("Timeframe")
     }
 }
 
@@ -108,7 +110,7 @@ struct SniperStrip: View {
 
     private func cell(_ label: String, _ value: Double?) -> some View {
         VStack(spacing: 1) {
-            Text(label.uppercased()).font(.open(9, .heavy)).tracking(0.5).foregroundStyle(Theme.muted)
+            Text(label.uppercased()).font(.open(11, .heavy)).tracking(0.5).foregroundStyle(Theme.muted)
             Text(num(value)).font(.open(13, .bold)).foregroundStyle(Theme.fg).monospacedDigit()
         }
         .frame(maxWidth: .infinity).padding(.vertical, 7)

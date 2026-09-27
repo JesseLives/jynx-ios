@@ -31,10 +31,10 @@ struct InviteView: View {
                     StepLabel("Your code")
                     HStack(spacing: 10) {
                         TextField("code", text: $code).font(.open(16)).textInputAutocapitalization(.never).autocorrectionDisabled()
-                            .padding(.horizontal, 14).frame(height: 48)
+                            .padding(.horizontal, 14).frame(minHeight: 48)
                             .background(Theme.raised, in: RoundedRectangle(cornerRadius: 14)).overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border))
                         Button(saving ? "Saving" : "Save") { Task { await save() } }
-                            .font(.open(15, .bold)).foregroundStyle(.white).padding(.horizontal, 18).frame(height: 48)
+                            .font(.open(15, .bold)).foregroundStyle(.white).padding(.horizontal, 18).frame(minHeight: 48)
                             .background(Theme.primary, in: Capsule()).disabled(saving || code == wallet.inviteCode || code.isEmpty)
                     }
                     Text(error ?? "3 to 20 letters, numbers, - or _").font(.open(13)).foregroundStyle(error == nil ? Theme.muted : Theme.down)

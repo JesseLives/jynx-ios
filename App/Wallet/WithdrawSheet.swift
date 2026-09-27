@@ -25,13 +25,15 @@ struct WithdrawSheet: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Amount").font(.open(14, .semibold)).foregroundStyle(Theme.fg)
                     TextField("0.00", text: $dollars).keyboardType(.decimalPad).font(.open(16))
-                        .padding(.horizontal, 14).frame(height: 48)
+                        .padding(.horizontal, 14).frame(minHeight: 48)
                         .background(Theme.raised, in: RoundedRectangle(cornerRadius: 14)).overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border))
                 }
                 Text("Up to \(Money.dollars(wallet.withdrawable)). Only referral earnings can be withdrawn.").font(.open(13.5)).foregroundStyle(Theme.muted)
                 Segmented(options: [("usdt", "USDT (TRC20)"), ("aba", "ABA")], selection: $method)
                 Field(label: method == "usdt" ? "USDT address (TRON)" : "ABA account number and name", text: $destination,
-                      placeholder: method == "usdt" ? "T…" : "000 000 000, Your Name", kind: .login)
+                      placeholder: method == "usdt" ? "T…" : "000 000 000, Your Name", kind: .login, submitLabel: .send) {
+                    if destination.trimmingCharacters(in: .whitespaces).count >= 3 { Task { await submit() } }
+                }
                 if let error { Text(error).font(.open(14)).foregroundStyle(Theme.down) }
                 PrimaryButton(title: typedCents.map { "Withdraw \(Money.dollars($0))" } ?? "Request withdrawal", busy: busy) { Task { await submit() } }
                     .disabled(destination.trimmingCharacters(in: .whitespaces).count < 3)

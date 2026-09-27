@@ -55,6 +55,7 @@ struct PayView: View {
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .onAppear { if !methods.contains(method), let first = methods.first { method = first } }
+        .sensoryFeedback(trigger: done) { _, new in new == nil ? nil : (new == .sent ? .impact(weight: .medium) : .success) }
     }
 
     private var title: String {
@@ -331,7 +332,7 @@ private struct ManualSheet: View {
                 if typing {
                     TextField(method == .usdt ? "Transaction ID (hash)" : "Transaction reference", text: $reference)
                         .font(.open(16)).textInputAutocapitalization(.never).autocorrectionDisabled()
-                        .padding(.horizontal, 14).frame(height: 48)
+                        .padding(.horizontal, 14).frame(minHeight: 48)
                         .background(Theme.raised, in: RoundedRectangle(cornerRadius: 14)).overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border))
                 } else {
                     Button("No screenshot? Enter the transaction ID") { typing = true }

@@ -54,6 +54,7 @@ struct RoomAvatar: View {
         let side: CGFloat = small ? 38 : 50
         RoundedRectangle(cornerRadius: small ? 12 : 16).fill(fill).frame(width: side, height: side)
             .overlay(Text(Look.initials(name)).font(.open(small ? 12 : 14, .heavy)).foregroundStyle(ink))
+            .accessibilityHidden(true)
     }
 }
 
@@ -72,7 +73,7 @@ struct PageTitle: View {
 
 struct VipBadge: View {
     var body: some View {
-        Text("VIP").font(.open(9.5, .heavy)).tracking(0.3).foregroundStyle(Theme.primary)
+        Text("VIP").font(.open(11, .heavy)).tracking(0.3).foregroundStyle(Theme.primary)
             .padding(.horizontal, 6).padding(.vertical, 2).background(Theme.primarySoft, in: RoundedRectangle(cornerRadius: 6))
     }
 }

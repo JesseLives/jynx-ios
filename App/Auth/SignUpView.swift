@@ -10,15 +10,20 @@ struct SignUpView: View {
     @State private var fieldErrors: [String: String] = [:]
     @State private var error: String?
     @State private var busy = false
+    @FocusState private var focus: Int?
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 Text("Create your account").font(.open(22, .semibold)).foregroundStyle(Theme.fg).padding(.top, 24)
-                Field(label: "Username", text: $username, placeholder: "Pick a username", kind: .username, error: fieldErrors["username"])
-                Field(label: "Email", text: $email, placeholder: "you@example.com", kind: .email, error: fieldErrors["email"])
-                Field(label: "Password", text: $password, placeholder: "At least 8 characters", kind: .newPassword, error: fieldErrors["password"])
-                Field(label: "Confirm password", text: $confirm, placeholder: "Repeat your password", kind: .newPassword, error: fieldErrors["confirm"])
+                Field(label: "Username", text: $username, placeholder: "Pick a username", kind: .username, error: fieldErrors["username"],
+                      focus: $focus, tag: 0) { focus = 1 }
+                Field(label: "Email", text: $email, placeholder: "you@example.com", kind: .email, error: fieldErrors["email"],
+                      focus: $focus, tag: 1) { focus = 2 }
+                Field(label: "Password", text: $password, placeholder: "At least 8 characters", kind: .newPassword, error: fieldErrors["password"],
+                      focus: $focus, tag: 2) { focus = 3 }
+                Field(label: "Confirm password", text: $confirm, placeholder: "Repeat your password", kind: .newPassword, error: fieldErrors["confirm"],
+                      focus: $focus, tag: 3, submitLabel: .go) { if ![username, email, password, confirm].contains(where: \.isEmpty) { Task { await submit() } } }
                 if let error { Text(error).font(.open(14)).foregroundStyle(Theme.down) }
                 PrimaryButton(title: "Create account", busy: busy) { Task { await submit() } }
                     .disabled(username.isEmpty || email.isEmpty || password.isEmpty || confirm.isEmpty)

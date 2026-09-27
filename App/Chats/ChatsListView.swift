@@ -64,7 +64,10 @@ struct SearchPill: View {
             Image(systemName: "magnifyingglass").font(.system(size: 15, weight: .medium)).foregroundStyle(Theme.muted)
             TextField("Search", text: $text).font(.open(16)).textInputAutocapitalization(.never).autocorrectionDisabled()
             if !text.isEmpty {
-                Button { text = "" } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(Theme.muted) }
+                Button { text = "" } label: {
+                    Image(systemName: "xmark.circle.fill").foregroundStyle(Theme.muted).frame(width: 44, height: 44)
+                }
+                .accessibilityLabel("Clear search")
             }
         }
         .padding(.horizontal, 14).frame(height: 42)

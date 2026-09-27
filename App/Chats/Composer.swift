@@ -6,6 +6,7 @@ struct Composer: View {
     @State private var text = ""
     @State private var busy = false
     @State private var error: String?
+    @State private var sent = 0
     @FocusState private var focused: Bool
 
     private var empty: Bool { text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
@@ -15,14 +16,16 @@ struct Composer: View {
             if let error { Text(error).font(.open(12.5)).foregroundStyle(Theme.down) }
             HStack(alignment: .bottom, spacing: 8) {
                 TextField("Message", text: $text, axis: .vertical).lineLimit(1...6).font(.open(16)).focused($focused)
-                    .padding(.horizontal, 16).padding(.vertical, 9).frame(minHeight: 40)
+                    .padding(.horizontal, 16).padding(.vertical, 10).frame(minHeight: 44)
                     .background(Theme.card, in: RoundedRectangle(cornerRadius: 20))
                     .overlay(RoundedRectangle(cornerRadius: 20).stroke(focused ? Theme.primary : Theme.border))
                     .onChange(of: text) { if text.count > 1000 { text = String(text.prefix(1000)) } }
                 Button { Task { await submit() } } label: {
                     Image(systemName: "paperplane.fill").font(.system(size: 16, weight: .semibold)).foregroundStyle(.white)
-                        .frame(width: 40, height: 40).background(Theme.primary, in: Circle())
+                        .frame(width: 44, height: 44).background(Theme.primary, in: Circle())
                 }
+                .accessibilityLabel("Send")
+                .sensoryFeedback(.impact(weight: .light), trigger: sent)
                 .disabled(busy || empty).opacity(busy || empty ? 0.4 : 1)
             }
         }
@@ -33,7 +36,7 @@ struct Composer: View {
     private func submit() async {
         let body = text.trimmingCharacters(in: .whitespacesAndNewlines)
         busy = true; error = nil
-        do { try await send(body); text = "" } catch { self.error = Copy.error(error) }
+        do { try await send(body); text = ""; sent += 1 } catch { self.error = Copy.error(error) }
         busy = false
     }
 }

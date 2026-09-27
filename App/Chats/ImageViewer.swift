@@ -14,7 +14,9 @@ struct ImageViewer: View {
             Button { dismiss() } label: {
                 Image(systemName: "xmark").font(.system(size: 17, weight: .bold)).foregroundStyle(.white)
                     .frame(width: 44, height: 44)
-            }.padding()
+            }
+            .accessibilityLabel("Close")
+            .padding()
         }
     }
 }
