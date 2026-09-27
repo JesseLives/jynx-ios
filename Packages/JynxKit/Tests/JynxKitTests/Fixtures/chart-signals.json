@@ -2,7 +2,7 @@
   "ok": true,
   "signals": [
     {
-      "id": "55701b8e-3cd3-4122-92be-67f835614a5d",
+      "id": "33596ba7-6f96-47f6-9ba5-882c72de9ffc",
       "side": "sell",
       "entry": 3700,
       "sl": 3712,
@@ -12,8 +12,8 @@
         3680
       ],
       "tpHits": [],
-      "createdAt": 1790484671.372,
-      "room": "P-u3jev"
+      "createdAt": 1790486246.556,
+      "room": "P-cyxqd"
     }
   ]
 }

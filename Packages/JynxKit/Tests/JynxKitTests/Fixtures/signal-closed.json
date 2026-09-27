@@ -1,8 +1,8 @@
 {
   "ok": true,
   "signal": {
-    "id": "1ed964d2-5995-4819-81c9-240030d17220",
-    "roomId": "08250834-a246-4e8b-a957-de08deec7f23",
+    "id": "59828a2c-1cca-42a8-b365-b64b585628e0",
+    "roomId": "df24bbb0-f8b3-4ab8-8585-0f8631ddef43",
     "symbol": "EURUSD",
     "side": "sell",
     "market": false,
@@ -19,8 +19,8 @@
     "slMovedTo": null,
     "realizedPips": 20,
     "resultPips": 20,
-    "createdAt": "2026-09-27T04:51:09.926Z",
-    "closedAt": "2026-09-27T04:51:09.940Z",
+    "createdAt": "2026-09-27T05:17:25.171Z",
+    "closedAt": "2026-09-27T05:17:25.191Z",
     "updates": [
       {
         "kind": "close",
@@ -28,7 +28,7 @@
         "fraction": "1",
         "tp": null,
         "pips": 20,
-        "createdAt": "2026-09-27T04:51:09.940Z"
+        "createdAt": "2026-09-27T05:17:25.191Z"
       }
     ]
   }

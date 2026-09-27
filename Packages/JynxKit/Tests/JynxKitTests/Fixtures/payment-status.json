@@ -1,0 +1,10 @@
+{
+  "ok": true,
+  "payment": {
+    "status": "pending",
+    "rejectReason": null,
+    "kind": "plan",
+    "amountCents": 11499,
+    "endsAt": null
+  }
+}

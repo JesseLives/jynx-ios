@@ -1,0 +1,36 @@
+{
+  "ok": true,
+  "products": [
+    {
+      "id": "04f1390c-6069-4f38-8f86-7abf88944f00",
+      "leaderId": "00000000-0000-0000-0000-000000000001",
+      "kind": "channel",
+      "name": "P-l9mdc",
+      "description": "",
+      "active": true,
+      "prices": {
+        "1": 11499,
+        "3": 29999,
+        "6": 54999,
+        "12": 82999
+      }
+    },
+    {
+      "id": "5dd03bb3-75b7-4839-bba2-b057448394ac",
+      "leaderId": "00000000-0000-0000-0000-000000000001",
+      "kind": "copier",
+      "name": "P-lmg3e",
+      "description": "",
+      "active": true,
+      "prices": {
+        "1": 2999
+      }
+    }
+  ],
+  "payment": {
+    "abaName": "JYNX CO",
+    "abaQrPath": null,
+    "usdtTrc20": "TAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "autoQr": "khqr"
+  }
+}

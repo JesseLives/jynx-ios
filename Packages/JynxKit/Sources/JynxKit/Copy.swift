@@ -10,6 +10,19 @@ public enum Copy {
         "muted": "You are muted in this group for now.",
         "banned": "You are banned from this group.",
         "not_found": "Not found.",
+        "insufficient": "Not enough in your wallet. Deposit first, or pay by ABA or USDT.",
+        "not_withdrawable": "That is more than you can withdraw. Only referral earnings can be withdrawn.",
+        "below_minimum": "That is below the minimum withdrawal.",
+        "withdrawal_pending": "You already have a withdrawal waiting. Wait for it to be paid first.",
+        "bad_amount": "Enter an amount within the deposit limits.",
+        "code_taken": "That invite code is taken. Try another.",
+        "code_invalid": "Use 3 to 20 letters, numbers, - or _.",
+        "no_price": "That plan is no longer available.",
+        "bad_receipt": "The receipt must be a PNG, JPEG or WebP image under 5 MB.",
+        "no_proof": "Add a receipt screenshot or a transaction reference.",
+        "too_many_pending": "You already have 5 payments waiting to be checked.",
+        "not_pending": "That payment was already decided.",
+        "qr_unavailable": "Payment by QR is not available right now. Try again in a minute, or pay with USDT.",
     ]
 
     public static func error(_ e: Error) -> String {
