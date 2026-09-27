@@ -5,6 +5,7 @@ struct SignalCardView: View {
     let signal: Signal?
     let chartURL: URL?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(PriceFeed.self) private var prices
     @State private var turn = false
 
     var body: some View {
@@ -41,8 +42,15 @@ struct SignalCardView: View {
         }
     }
 
+    private func live(_ s: Signal) -> PriceTick? { s.status == .running && s.symbol == PriceFeed.symbol ? prices.last : nil }
+
     private func inner(_ s: Signal) -> some View {
         let done = s.status != .running
+        let tick = live(s)
+        let livePips = tick.flatMap { Pips.value(symbol: s.symbol, side: s.side, entry: Double(s.entry) ?? 0, exit: $0.p) }
+        let fresh = tick.map { Date().timeIntervalSince1970 - $0.t < 60 } ?? false
+        let fills = TargetProgress.fills(side: s.side, entry: Double(s.entry) ?? 0, tps: s.tps.compactMap(Double.init),
+                                         hits: s.tpHits, price: tick?.p)
         let sideColor = done ? Theme.muted : s.side == .buy ? Theme.up : Theme.down
         return VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 2) {
@@ -58,15 +66,24 @@ struct SignalCardView: View {
                 case .cancelled:
                     Text("Cancelled").font(.open(34, .heavy)).tracking(-1.3).foregroundStyle(Theme.muted)
                 default:
-                    Text(Format.money(s.entry)).font(.open(34, .heavy)).tracking(-1.3).foregroundStyle(Theme.fg).monospacedDigit()
+                    HStack(spacing: 8) {
+                        if fresh { LiveDot() }
+                        Text(Format.money(tick.map { String($0.p) } ?? s.entry)).font(.open(34, .heavy)).tracking(-1.3)
+                            .foregroundStyle(Theme.fg).monospacedDigit().contentTransition(.numericText())
+                    }
                     HStack(spacing: 12) {
-                        Text("Entry price")
+                        if let livePips {
+                            Text(Format.pips(livePips)).fontWeight(.heavy)
+                                .foregroundStyle(livePips > 0 ? Theme.up : livePips < 0 ? Theme.down : Theme.muted)
+                        } else { Text("Entry price") }
                         if s.realizedPips != 0 { Text("Realized \(Format.pips(s.realizedPips))") }
                     }.font(.open(13.5, .semibold)).foregroundStyle(Theme.muted)
                 }
             }
             HStack(alignment: .top, spacing: 8) {
-                ForEach(Array(s.tps.enumerated()), id: \.offset) { i, tp in step(s, i, tp) }
+                ForEach(Array(s.tps.enumerated()), id: \.offset) { i, tp in
+                    step(s, i, tp, fill: done && !s.tpHits.contains(i + 1) ? 0 : (i < fills.count ? fills[i] : 0))
+                }
             }
             HStack(spacing: 8) {
                 tile(s.market ? "ENTRY (MKT)" : "ENTRY") { Text(Format.money(s.entry)) }
@@ -97,12 +114,18 @@ struct SignalCardView: View {
         return "\(s.side == .buy ? "BUY" : "SELL") \(s.symbol)\(tail)"
     }
 
-    private func step(_ s: Signal, _ i: Int, _ tp: String) -> some View {
+    private func step(_ s: Signal, _ i: Int, _ tp: String, fill: Double) -> some View {
         let hit = s.tpHits.contains(i + 1)
         let pips = s.updates.first { $0.kind == "tp_hit" && $0.tp == i + 1 }?.pips
         return VStack(alignment: .leading, spacing: 5) {
             Capsule().fill(Theme.raised).frame(height: 8)
-                .overlay(alignment: .leading) { if hit { Capsule().fill(Theme.gain) } }
+                .overlay(alignment: .leading) {
+                    GeometryReader { g in
+                        Capsule().fill(Theme.gain).frame(width: g.size.width * fill)
+                            .animation(.easeOut(duration: 0.4), value: fill)
+                    }
+                }
+                .clipShape(Capsule())
             HStack(spacing: 4) {
                 Text("TP\(i + 1)")
                 if hit, let pips { Text(Format.pips(pips)).fontWeight(.heavy) }
@@ -120,5 +143,17 @@ struct SignalCardView: View {
         .padding(.horizontal, 10).padding(.vertical, 9)
         .background(Theme.bg, in: RoundedRectangle(cornerRadius: 14))
         .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.border))
+    }
+}
+
+struct LiveDot: View {
+    @State private var on = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    var body: some View {
+        Circle().fill(Theme.up).frame(width: 8, height: 8)
+            .opacity(on ? 0.35 : 1)
+            .animation(reduceMotion ? nil : .easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: on)
+            .onAppear { on = true }
+            .accessibilityLabel("Live price")
     }
 }

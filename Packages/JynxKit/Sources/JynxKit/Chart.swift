@@ -62,3 +62,24 @@ public struct PriceTick: Decodable, Sendable, Equatable {
     public let t: Double, p: Double
     public init(t: Double, p: Double) { self.t = t; self.p = p }
 }
+
+extension PriceTick {
+    public init?(event: SSEEvent) {
+        guard event.event == "price", let tick = try? JSONDecoder().decode(PriceTick.self, from: Data(event.data.utf8)) else { return nil }
+        self = tick
+    }
+    public func isNewer(than last: PriceTick?) -> Bool { last.map { t >= $0.t } ?? true }
+}
+
+public enum TargetProgress {
+    public static func fills(side: Side, entry: Double, tps: [Double], hits: [Int], price: Double?) -> [Double] {
+        let levels = [entry] + tps, dir: Double = side == .buy ? 1 : -1
+        return tps.indices.map { i in
+            if hits.contains(i + 1) { return 1 }
+            guard let price else { return 0 }
+            let span = (levels[i + 1] - levels[i]) * dir
+            guard span > 0 else { return 0 }
+            return min(1, max(0, (price - levels[i]) * dir / span))
+        }
+    }
+}

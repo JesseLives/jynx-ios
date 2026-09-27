@@ -25,6 +25,7 @@ final class Live {
                 case .room(let id): versions[id, default: 0] += 1
                 case .everything: everything += 1
                 case .signedOut: session.handle(APIError.signedOut)
+                case .message: break
                 }
             }
         }

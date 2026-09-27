@@ -1,4 +1,4 @@
-public enum LiveEvent: Equatable, Sendable { case connected, disconnected, room(String), everything, signedOut }
+public enum LiveEvent: Equatable, Sendable { case connected, disconnected, room(String), everything, signedOut, message(SSEEvent) }
 
 public struct LiveStream: Sendable {
     let connect: @Sendable () async throws -> AsyncThrowingStream<String, Error>
@@ -22,8 +22,8 @@ public struct LiveStream: Sendable {
                         first = false; failedBefore = false
                         var parser = SSEParser()
                         for try await line in lines {
-                            guard let e = parser.feed(line), e.event == "room" else { continue }
-                            out.yield(e.data == "*" ? .everything : .room(e.data))
+                            guard let e = parser.feed(line) else { continue }
+                            out.yield(e.event != "room" ? .message(e) : e.data == "*" ? .everything : .room(e.data))
                         }
                         out.yield(.disconnected)
                         try await sleep(.seconds(1))

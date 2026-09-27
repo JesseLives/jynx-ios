@@ -3,6 +3,7 @@ import SwiftUI
 struct TabsView: View {
     @Environment(Session.self) private var session
     @State private var live = Live()
+    @State private var prices = PriceFeed()
 
     var body: some View {
         TabView {
@@ -13,7 +14,8 @@ struct TabsView: View {
             ProfileView().tabItem { Label("Profile", systemImage: "person") }
         }
         .environment(live)
-        .onAppear { live.start(session: session) }
-        .onDisappear { live.stop() }
+        .environment(prices)
+        .onAppear { live.start(session: session); prices.start(session: session) }
+        .onDisappear { live.stop(); prices.stop() }
     }
 }

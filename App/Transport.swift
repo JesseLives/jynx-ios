@@ -16,11 +16,11 @@ struct URLSessionTransport: Transport {
 
 private struct Bytes: @unchecked Sendable { let bytes: URLSession.AsyncBytes }
 
-func streamLines(base: URL) async throws -> AsyncThrowingStream<String, Error> {
+func streamLines(base: URL, path: String = "api/stream") async throws -> AsyncThrowingStream<String, Error> {
     let c = URLSessionConfiguration.default
     c.timeoutIntervalForRequest = 60   // the server pings every 25 s
     c.timeoutIntervalForResource = .infinity
-    var req = URLRequest(url: base.appending(path: "api/stream"))
+    var req = URLRequest(url: base.appending(path: path))
     req.setValue("text/event-stream", forHTTPHeaderField: "Accept")
     let (bytes, res) = try await URLSession(configuration: c).bytes(for: req)
     let status = (res as? HTTPURLResponse)?.statusCode ?? 0
