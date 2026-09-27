@@ -76,7 +76,7 @@ struct ProfileView: View {
             .background(Theme.bg)
             .refreshable { await session.refreshMe() }
             .toolbar(.hidden, for: .navigationBar)
-            .sheet(item: Binding(get: { extending.map(Extend.init) }, set: { extending = $0?.id })) { e in PlansView(preselect: e.id) }
+            .sheet(item: Binding(get: { extending.map(Extend.init) }, set: { extending = $0?.id })) { e in PlansView(preselect: e.id, closable: true) }
             .sheet(isPresented: $deleting) { DeleteAccountView() }
             .task { if !Features.copier { copier = try? await session.api.copier() } }
             .onChange(of: alarm) { AlarmPlayer.play(alarm) }   // hear the choice

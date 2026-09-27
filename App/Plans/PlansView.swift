@@ -15,6 +15,8 @@ struct PlansView: View {
     @State private var buyError: String?
     var preselect: String? = nil
     var startKind: ProductKind = .channel
+    var closable = false
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
@@ -24,6 +26,15 @@ struct PlansView: View {
                 else { ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity) }
             }
             .background(Theme.bg)
+            .overlay(alignment: .topTrailing) {
+                if closable {
+                    Button { dismiss() } label: {
+                        Image(systemName: "xmark").font(.system(size: 15, weight: .bold)).foregroundStyle(Theme.fg)
+                            .frame(width: 44, height: 44).background(Theme.card, in: Circle())
+                    }
+                    .accessibilityLabel("Close").padding(.trailing, 16).padding(.top, 12)
+                }
+            }
             .navigationDestination(item: $paying) { order in PayView(order: order, payment: plans?.payment) }
             .toolbar(.hidden, for: .navigationBar)
             .task {

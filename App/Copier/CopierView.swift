@@ -25,7 +25,7 @@ struct CopierView: View {
             .toolbar(.hidden, for: .navigationBar)
             .refreshable { await load() }
             .task(id: state?.account?.status) { await poll() }
-            .sheet(isPresented: $buying) { PlansView(startKind: .copier) }
+            .sheet(isPresented: $buying) { PlansView(startKind: .copier, closable: true) }
             .confirmationDialog("Disconnect this account?", isPresented: $confirmDisconnect, titleVisibility: .visible) {
                 Button("Disconnect", role: .destructive) { Task { await disconnect() } }
             } message: { Text("Open copied trades stay open in MT5.") }

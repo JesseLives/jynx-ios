@@ -84,3 +84,22 @@ public struct AmountInput: Equatable, Sendable {
         text = c % 100 == 0 ? String(c / 100) : String(format: "%d.%02d", c / 100, c % 100)
     }
 }
+
+public struct CentsInput: Equatable, Sendable {
+    public private(set) var cents = 0
+    public init(cents: Int = 0) { self.cents = min(max(0, cents), AmountInput.maxCents) }
+
+    public var display: String {
+        (Double(cents) / 100).formatted(.number.locale(Locale(identifier: "en_US")).precision(.fractionLength(2)))
+    }
+
+    public mutating func press(_ key: String) {
+        if key == "⌫" { cents /= 10; return }
+        guard !key.isEmpty, key.allSatisfy(\.isNumber) else { return }
+        var next = cents
+        for ch in key { next = next * 10 + Int(String(ch))! }
+        if next <= AmountInput.maxCents { cents = next }
+    }
+
+    public mutating func add(cents more: Int) { cents = min(AmountInput.maxCents, cents + more) }
+}

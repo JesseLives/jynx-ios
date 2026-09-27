@@ -136,3 +136,24 @@ import Testing
     #expect(Copy.error(APIError.server(status: 400, code: "not_yours", field: nil, message: nil)) == "That purchase belongs to another Jynx account.")
     #expect(Copy.error(APIError.server(status: 400, code: "bad_signature", field: nil, message: nil)) == "Apple could not confirm that purchase. Try again.")
 }
+
+@Test func centsKeypadFillsFromTheRight() {
+    var k = CentsInput()
+    #expect(k.cents == 0 && k.display == "0.00")
+    for d in ["1", "0", "0", "0"] { k.press(d) }
+    #expect(k.cents == 1000 && k.display == "10.00")
+    k.press("0"); k.press("0")
+    #expect(k.cents == 100_000 && k.display == "1,000.00")
+    k.press("⌫")
+    #expect(k.cents == 10_000 && k.display == "100.00")
+    k.press("00")
+    #expect(k.cents == 1_000_000 && k.display == "10,000.00")
+    k.press("5")                                   // over $10,000: ignored
+    #expect(k.cents == 1_000_000)
+    k = CentsInput(); k.press("0")
+    #expect(k.display == "0.00")                   // no leading zeros
+    k.add(cents: 5000); k.add(cents: 1000)
+    #expect(k.display == "60.00")
+    k.add(cents: 2_000_000)
+    #expect(k.cents == 1_000_000)
+}

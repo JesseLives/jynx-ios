@@ -51,9 +51,8 @@ struct PayView: View {
                 }
             }
         }
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(.hidden, for: .navigationBar)
-        .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbar(.hidden, for: .navigationBar)
+        .navigationBarBackButtonHidden()
         .onAppear { if !methods.contains(method), let first = methods.first { method = first } }
         .sensoryFeedback(trigger: done, feedback)
     }
@@ -76,6 +75,15 @@ struct PayView: View {
 
     @ViewBuilder private var dark: some View {
         VStack(spacing: 18) {
+            HStack {
+                Button { dismiss() } label: {
+                    Image(systemName: "chevron.left").font(.system(size: 17, weight: .bold)).foregroundStyle(.white)
+                        .frame(width: 44, height: 44).background(Color.white.opacity(0.1), in: Circle())
+                }
+                .accessibilityLabel("Back")
+                Spacer()
+            }
+            .padding(.horizontal, 16)
             Text(title).font(.open(24, .heavy)).foregroundStyle(.white).multilineTextAlignment(.center).padding(.horizontal, 20)
             if methods.count > 1 {
                 Menu {
