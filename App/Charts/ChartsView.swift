@@ -40,7 +40,7 @@ struct ChartsView: View {
                 }.padding(24).frame(maxHeight: .infinity)
             } else {
                 CandleCanvas(bars: shownBars, timeframe: tf, style: c.style, up: up, down: down,
-                             grid: c.grid.flatMap(Color.init(hexString:)) ?? (scheme == .dark ? Color(hex: 0x16181c) : Color(hex: 0xeef2f5)),
+                             grid: scheme == .dark ? Color(hex: 0x16181c) : c.grid.flatMap(Color.init(hexString:)) ?? Color(hex: 0xeef2f5),
                              background: c.background.flatMap(Color.init(hexString:)) ?? Theme.bg,
                              lines: lines(up: up, down: down), markers: markers(up: up, down: down),
                              lastPrice: prices.last?.p, viewport: $viewport, crosshair: $crosshair)
