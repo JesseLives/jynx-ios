@@ -21,5 +21,3 @@ struct JynxApp: App {
         }
     }
 }
-
-struct TabsView: View { var body: some View { Text("Signed in") } }
