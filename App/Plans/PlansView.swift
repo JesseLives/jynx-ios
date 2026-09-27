@@ -10,6 +10,7 @@ struct PlansView: View {
     @State private var months: Int?
     @State private var paying: PayOrder?
     var preselect: String? = nil
+    var startKind: ProductKind = .channel
 
     var body: some View {
         NavigationStack {
@@ -21,7 +22,7 @@ struct PlansView: View {
             .background(Theme.bg)
             .navigationDestination(item: $paying) { order in PayView(order: order, payment: plans?.payment) }
             .toolbar(.hidden, for: .navigationBar)
-            .task { await load() }
+            .task { if preselect == nil { kind = startKind }; await load() }
             .refreshable { await load(); await session.refreshMe() }
         }
     }
