@@ -6,6 +6,7 @@ struct ProfileView: View {
     @AppStorage("appearance") private var appearance: Appearance = .light
     @State private var confirmLogout = false
     @State private var deleting = false
+    @State private var copier: CopierState?
     @State private var extending: String?
     @State private var renewing: Set<String> = []
     @State private var renewError: String?
@@ -19,6 +20,7 @@ struct ProfileView: View {
                     if let me = session.me {
                         header(me); plans(me)
                         if let renewError { Text(renewError).font(.open(14)).foregroundStyle(Theme.down) }
+                        if !Features.copier, let a = copier?.account { copierStatus(CopierPower.of(hasPass: copier?.hasPass ?? false, account: a)) }
                         CardGroup {
                             NavigationLink { WalletView() } label: {
                                 Row(symbol: "wallet.pass", title: "Wallet") {
@@ -76,6 +78,7 @@ struct ProfileView: View {
             .toolbar(.hidden, for: .navigationBar)
             .sheet(item: Binding(get: { extending.map(Extend.init) }, set: { extending = $0?.id })) { e in PlansView(preselect: e.id) }
             .sheet(isPresented: $deleting) { DeleteAccountView() }
+            .task { if !Features.copier { copier = try? await session.api.copier() } }
             .onChange(of: alarm) { AlarmPlayer.play(alarm) }   // hear the choice
             .confirmationDialog("Log out of Jynx?", isPresented: $confirmLogout, titleVisibility: .visible) {
                 Button("Log out", role: .destructive) { Task { await session.signOut() } }
@@ -130,6 +133,15 @@ struct ProfileView: View {
         do { try await session.api.setAutoRenew(productId: s.productId, on: on); await session.refreshMe() }
         catch { session.handle(error); renewError = Copy.error(error) }
         renewing.remove(s.productId)
+    }
+
+    private func copierStatus(_ power: CopierPower) -> some View {
+        CardGroup {
+            Row(symbol: "power", title: "Copier", subtitle: power.sub) {
+                Text(power.label).font(.open(15, .semibold))
+                    .foregroundStyle(power.ring == .on ? Theme.up : power.ring == .error ? Theme.down : Theme.muted)
+            }
+        }
     }
 
     private func until(_ end: Date) -> String {
