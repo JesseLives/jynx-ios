@@ -120,3 +120,19 @@ import Testing
     #expect(AmountInput.parse("99999999999999999", decimalSeparator: ".") == nil)
     #expect(AmountInput.parse("999999999999", decimalSeparator: ".") == 99_999_999_999_900)
 }
+
+@Test func plansCarryTheirAppStoreIDs() throws {
+    let p = try JSON.decoder().decode(PlansBody.self, from: fixture("plans"))
+    let channel = try #require(p.products.first { $0.kind == .channel })
+    #expect(channel.appleIds.keys.sorted() == [1, 3, 6, 12])
+    #expect(channel.appleIds[3]?.hasPrefix("xyz.justsal.jynx.") == true && channel.appleIds[3]?.hasSuffix(".3m") == true)
+}
+
+@Test func reportingAnApplePurchase() async throws {
+    let t = StubTransport(); t.body = try fixture("iap-granted")
+    let end = try await api(t).reportApplePurchase(signedTransaction: "a.b.c")
+    #expect(end != nil && t.seen[0].url?.path == "/api/iap")
+    #expect(try JSONSerialization.jsonObject(with: t.seen[0].httpBody!) as? [String: String] == ["signedTransaction": "a.b.c"])
+    #expect(Copy.error(APIError.server(status: 400, code: "not_yours", field: nil, message: nil)) == "That purchase belongs to another Jynx account.")
+    #expect(Copy.error(APIError.server(status: 400, code: "bad_signature", field: nil, message: nil)) == "Apple could not confirm that purchase. Try again.")
+}

@@ -9,6 +9,10 @@ struct PlansView: View {
     @State private var picked: String?
     @State private var months: Int?
     @State private var paying: PayOrder?
+    @State private var applePrices: [String: String] = [:]
+    @State private var buying = false
+    @State private var bought: String?
+    @State private var buyError: String?
     var preselect: String? = nil
     var startKind: ProductKind = .channel
 
@@ -22,7 +26,14 @@ struct PlansView: View {
             .background(Theme.bg)
             .navigationDestination(item: $paying) { order in PayView(order: order, payment: plans?.payment) }
             .toolbar(.hidden, for: .navigationBar)
-            .task { if preselect == nil { kind = startKind }; await load() }
+            .task {
+                if plans == nil && preselect == nil { kind = startKind }
+                await load()
+                if Features.store, let plans { applePrices = await AppleStore.prices(for: plans.products.flatMap { Array($0.appleIds.values) }) }
+            }
+            .alert("You're in", isPresented: Binding(get: { bought != nil }, set: { if !$0 { bought = nil } })) {
+                Button("OK") { bought = nil }
+            } message: { Text(bought ?? "") }
             .refreshable { await load(); await session.refreshMe() }
         }
     }
@@ -109,22 +120,45 @@ struct PlansView: View {
                 HStack(spacing: 14) {
                     VStack(alignment: .leading, spacing: 0) {
                         Text("Total").font(.open(13)).foregroundStyle(Theme.muted)
-                        Text(Money.dollars(cents)).font(.open(24, .heavy)).foregroundStyle(Theme.fg).monospacedDigit()
+                        Text(product.appleIds[chosen].flatMap { applePrices[$0] } ?? Money.dollars(cents))
+                            .font(.open(24, .heavy)).foregroundStyle(Theme.fg).monospacedDigit()
                             .contentTransition(.numericText())
                     }
                     Divider().frame(height: 40)
-                    Button { paying = .plan(product, months: chosen) } label: {
-                        HStack(spacing: 8) { Text("Continue to payment"); Image(systemName: "arrow.right") }
-                            .font(.open(16, .bold)).foregroundStyle(.white).frame(maxWidth: .infinity).frame(height: 52)
-                            .background(Theme.primary, in: Capsule())
+                    Button { if Features.store { Task { await buyFromApple(product, chosen) } } else { paying = .plan(product, months: chosen) } } label: {
+                        HStack(spacing: 8) {
+                            if buying { ProgressView().tint(.white) }
+                            else { Text(Features.store ? "Subscribe" : "Continue to payment"); Image(systemName: "arrow.right") }
+                        }
+                        .font(.open(16, .bold)).foregroundStyle(.white).frame(maxWidth: .infinity).frame(minHeight: 52)
+                        .background(Theme.primary, in: Capsule())
                     }
+                    .disabled(buying)
                 }
                 .padding(12)
+                .overlay(alignment: .top) {
+                    if let buyError { Text(buyError).font(.open(13.5)).foregroundStyle(Theme.down).multilineTextAlignment(.center).offset(y: -28) }
+                }
                 .background(Theme.card, in: RoundedRectangle(cornerRadius: 26))
                 .overlay(RoundedRectangle(cornerRadius: 26).stroke(Theme.borderSoft))
                 .padding(.horizontal, 16).padding(.bottom, 8)
             }
         }
+    }
+
+    private func buyFromApple(_ product: JynxKit.Product, _ months: Int) async {
+        guard let appleId = product.appleIds[months], let userId = session.me?.user.id else { return }
+        buying = true; buyError = nil
+        do {
+            switch try await AppleStore.buy(appleId, userId: userId, api: session.api) {
+            case .active(let end):
+                await session.refreshMe()
+                bought = end.map { "Active until \($0.formatted(.dateTime.day().month(.abbreviated).year()))." } ?? "Your plan is active."
+            case .pending: buyError = "Waiting for approval. Your plan starts as soon as Apple confirms it."
+            case .cancelled: break
+            }
+        } catch { session.handle(error); buyError = (error as? LocalizedError)?.errorDescription ?? Copy.error(error) }
+        buying = false
     }
 
     private func active(_ p: Product) -> Subscription? { session.me?.subscriptions.first { $0.productId == p.id } }

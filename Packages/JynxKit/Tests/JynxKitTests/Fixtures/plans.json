@@ -2,10 +2,10 @@
   "ok": true,
   "products": [
     {
-      "id": "eeb496d4-d2b1-432f-ba6f-c5d53ab05571",
+      "id": "00d03fbe-36e2-4ab6-905b-807d24f8b146",
       "leaderId": "00000000-0000-0000-0000-000000000001",
       "kind": "channel",
-      "name": "P-bepp1",
+      "name": "P-t9lho",
       "description": "",
       "active": true,
       "prices": {
@@ -13,17 +13,26 @@
         "3": 29999,
         "6": 54999,
         "12": 82999
+      },
+      "appleIds": {
+        "1": "xyz.justsal.jynx.00d03fbe.1m",
+        "3": "xyz.justsal.jynx.00d03fbe.3m",
+        "6": "xyz.justsal.jynx.00d03fbe.6m",
+        "12": "xyz.justsal.jynx.00d03fbe.12m"
       }
     },
     {
-      "id": "98e8473f-9ff8-413c-8bf1-fe04376d5ca9",
+      "id": "37d93c5e-19f8-44c6-9302-6b21bddbd16c",
       "leaderId": "00000000-0000-0000-0000-000000000001",
       "kind": "copier",
-      "name": "P-60c8x",
+      "name": "P-ac1gb",
       "description": "",
       "active": true,
       "prices": {
         "1": 2999
+      },
+      "appleIds": {
+        "1": "xyz.justsal.jynx.37d93c5e.1m"
       }
     }
   ],

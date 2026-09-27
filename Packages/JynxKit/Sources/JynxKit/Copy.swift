@@ -28,6 +28,10 @@ public enum Copy {
         "not_connected": "No MT5 account is connected.",
         "bad_password": "That password is not right.",
         "staff_account": "Staff accounts are removed by the owner.",
+        "bad_signature": "Apple could not confirm that purchase. Try again.",
+        "not_yours": "That purchase belongs to another Jynx account.",
+        "revoked": "That purchase was refunded.",
+        "wrong_app": "That purchase is for another app.",
         "qr_unavailable": "Payment by QR is not available right now. Try again in a minute, or pay with USDT.",
     ]
 

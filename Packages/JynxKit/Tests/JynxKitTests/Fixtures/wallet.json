@@ -4,8 +4,8 @@
     "balance": 5149,
     "withdrawable": 149,
     "earnedCents": 1149,
-    "inviteCode": "ef7e182f",
-    "username": "u_c06de39a14d1",
+    "inviteCode": "33cd0def",
+    "username": "u_56c9ba8be036",
     "referrals": true,
     "rates": [
       10,
@@ -21,30 +21,30 @@
     "minDepositCents": 500,
     "activity": [
       {
-        "id": "ca11e67d-9484-4468-9489-183c6688ec20",
+        "id": "b1b66659-e9c6-47b9-9982-2b89514b3654",
         "kind": "withdrawal",
         "cents": -1000,
-        "at": "2026-09-27T06:07:35.022Z",
+        "at": "2026-09-27T06:49:35.322Z",
         "level": null,
         "from": null,
         "product": null,
         "withdrawalStatus": "pending"
       },
       {
-        "id": "bd9dcedd-2cc0-406e-83c1-845f09f76f6f",
+        "id": "744ea295-ef18-4c75-aeb3-3fff171e143a",
         "kind": "commission",
         "cents": 1149,
-        "at": "2026-09-27T06:07:34.986Z",
+        "at": "2026-09-27T06:49:35.292Z",
         "level": 1,
-        "from": "u_17ae42b8d1cc",
+        "from": "u_da3aab1f2a5a",
         "product": null,
         "withdrawalStatus": null
       },
       {
-        "id": "0f940654-780a-4ea9-82f0-2eb25c259697",
+        "id": "dc24ff41-b64f-4ff8-9141-3e3c6ac36e80",
         "kind": "deposit",
         "cents": 5000,
-        "at": "2026-09-27T06:07:34.723Z",
+        "at": "2026-09-27T06:49:35.104Z",
         "level": null,
         "from": null,
         "product": null,
@@ -53,13 +53,13 @@
     ],
     "withdrawals": [
       {
-        "id": "0a392f4c-ed41-4727-aa04-ec07b6f55904",
+        "id": "35663af0-3e82-4afb-80b2-94cef92f7ab5",
         "amount_cents": 1000,
         "method": "usdt",
         "destination": "TBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
         "status": "pending",
         "reject_reason": null,
-        "created_at": "2026-09-27T06:07:35.022Z"
+        "created_at": "2026-09-27T06:49:35.322Z"
       }
     ]
   }

@@ -10,15 +10,18 @@ public enum PaymentStatus: String, Sendable, Lenient {
 public struct Product: Decodable, Sendable, Equatable, Identifiable {
     public let id: String, kind: ProductKind, name: String, description: String
     public let prices: [Int: Int]
+    public let appleIds: [Int: String]
     public var lengths: [Int] { PlanMath.lengths.filter { prices[$0] != nil } }
 
-    enum Keys: String, CodingKey { case id, kind, name, description, prices }
+    enum Keys: String, CodingKey { case id, kind, name, description, prices, appleIds }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: Keys.self)
         id = try c.decode(String.self, forKey: .id); kind = try c.decode(ProductKind.self, forKey: .kind)
         name = try c.decode(String.self, forKey: .name); description = try c.decode(String.self, forKey: .description)
         let raw = try c.decode([String: Int].self, forKey: .prices)
         prices = Dictionary(uniqueKeysWithValues: raw.compactMap { k, v in Int(k).map { ($0, v) } })
+        let ids = try c.decodeIfPresent([String: String].self, forKey: .appleIds) ?? [:]
+        appleIds = Dictionary(uniqueKeysWithValues: ids.compactMap { k, v in Int(k).map { ($0, v) } })
     }
 }
 

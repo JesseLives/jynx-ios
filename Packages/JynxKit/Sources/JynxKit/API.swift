@@ -82,6 +82,9 @@ public struct API: Sendable {
     public func startQR(depositCents: Int) async throws -> QRPayment {
         (try await call("POST", "/api/payments/qr", ["kind": "deposit", "amountCents": .int(depositCents)]) as QRPaymentBody).payment
     }
+    public func reportApplePurchase(signedTransaction: String) async throws -> Date? {
+        (try await call("POST", "/api/iap", ["signedTransaction": .string(signedTransaction)]) as EndsAt).endsAt
+    }
     public func wallet() async throws -> WalletOverview { (try await call("GET", "/api/wallet") as WalletBody).wallet }
     public func buyWithWallet(productId: String, months: Int) async throws -> Date? {
         (try await call("POST", "/api/wallet", ["action": "buy", "productId": .string(productId), "months": .int(months)]) as EndsAt).endsAt

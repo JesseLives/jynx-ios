@@ -50,8 +50,8 @@ struct WalletView: View {
         VStack(alignment: .leading, spacing: 24) {
             WalletCard(wallet: w)
             HStack {
-                if Features.sells { action("Deposit", "arrow.down.to.line", filled: true) { route = .deposit } }
-                action("Withdraw", "arrow.up.to.line") { withdrawing = true }
+                if Features.sells && !Features.store { action("Deposit", "arrow.down.to.line", filled: true) { route = .deposit } }
+                if !Features.store { action("Withdraw", "arrow.up.to.line") { withdrawing = true } }
                 if w.referrals { action("Invite", "square.and.arrow.up") { route = .invite } }
             }
             let days = grouped(w.activity)

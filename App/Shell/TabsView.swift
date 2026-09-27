@@ -4,6 +4,7 @@ struct TabsView: View {
     @Environment(Session.self) private var session
     @State private var live = Live()
     @State private var prices = PriceFeed()
+    @State private var storeListener: Task<Void, Never>?
 
     var body: some View {
         TabView {
@@ -18,7 +19,10 @@ struct TabsView: View {
         }
         .environment(live)
         .environment(prices)
-        .onAppear { live.start(session: session); prices.start(session: session) }
-        .onDisappear { live.stop(); prices.stop() }
+        .onAppear {
+            live.start(session: session); prices.start(session: session)
+            if Features.store && storeListener == nil { storeListener = AppleStore.listen(api: session.api) { await session.refreshMe() } }
+        }
+        .onDisappear { live.stop(); prices.stop(); storeListener?.cancel(); storeListener = nil }
     }
 }

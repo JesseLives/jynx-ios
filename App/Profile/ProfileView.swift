@@ -108,7 +108,7 @@ struct ProfileView: View {
                             .background(Theme.primary, in: Capsule())
                     }
                 }
-                if Features.sells {
+                if Features.sells && !Features.store {
                     Divider().padding(.leading, 68)
                     Toggle(isOn: Binding(get: { renewing.contains(s.productId) != s.autoRenew },
                                          set: { on in Task { await setRenew(s, on: on) } })) {

@@ -2,26 +2,11 @@
   "ok": true,
   "rooms": [
     {
-      "id": "614a03ac-c22b-4d37-bf27-3c7a950d0759",
+      "id": "4fe02bad-46c8-49cd-bd1e-54a41a797dab",
       "leaderId": "00000000-0000-0000-0000-000000000001",
       "kind": "channel",
-      "name": "P-se069",
-      "productId": "b50a8fd1-9890-4123-ad38-76a3274718f9",
-      "access": "product",
-      "archived": false,
-      "locked": false,
-      "unread": 5,
-      "last": {
-        "body": "Closed at 1.083 +20 pips, result +20 pips",
-        "createdAt": "2026-09-27T06:33:32.364Z"
-      }
-    },
-    {
-      "id": "778fd86a-77e8-400e-8f19-8bc1ce91723b",
-      "leaderId": "00000000-0000-0000-0000-000000000001",
-      "kind": "channel",
-      "name": "P-xa3lf",
-      "productId": "c6471494-e7ab-4883-8270-2fc692ae8f13",
+      "name": "P-gxzod",
+      "productId": "c7937f86-c9bc-49b3-bdb8-89741ce5a0be",
       "access": "product",
       "archived": false,
       "locked": true,
@@ -29,10 +14,25 @@
       "last": null
     },
     {
-      "id": "0528811e-13f6-4b24-b629-e24fc78f7a67",
+      "id": "3a3b56f0-36a1-4c09-aa5d-11d4781ef4e7",
+      "leaderId": "00000000-0000-0000-0000-000000000001",
+      "kind": "channel",
+      "name": "P-wrgz6",
+      "productId": "64c1c9cf-5e62-4757-b3de-f59592dfcdbf",
+      "access": "product",
+      "archived": false,
+      "locked": false,
+      "unread": 5,
+      "last": {
+        "body": "Closed at 1.083 +20 pips, result +20 pips",
+        "createdAt": "2026-09-27T06:49:32.625Z"
+      }
+    },
+    {
+      "id": "21b1d1c4-c155-40c7-9e68-d865b354deac",
       "leaderId": "00000000-0000-0000-0000-000000000001",
       "kind": "group",
-      "name": "G-rlqsg",
+      "name": "G-qf8po",
       "productId": null,
       "access": "everyone",
       "archived": false,
@@ -40,7 +40,7 @@
       "unread": 2,
       "last": {
         "body": "",
-        "createdAt": "2026-09-27T06:33:32.386Z"
+        "createdAt": "2026-09-27T06:49:32.648Z"
       }
     }
   ]

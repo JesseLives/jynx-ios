@@ -10,6 +10,7 @@ settings:
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
     JYNX_COPIER: "NO"
+    JYNX_STORE: "NO"
     JYNX_SELLS: "YES"
     CODE_SIGNING_ALLOWED: "NO"
     TARGETED_DEVICE_FAMILY: "1"
@@ -33,3 +34,4 @@ targets:
         ITSAppUsesNonExemptEncryption: false
         JynxSells: $(JYNX_SELLS)
         JynxCopier: $(JYNX_COPIER)
+        JynxStore: $(JYNX_STORE)
