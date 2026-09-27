@@ -9,8 +9,8 @@ struct TabsView: View {
         TabView {
             ChatsListView().tabItem { Label("Chats", systemImage: "bubble.left.and.bubble.right") }
             ChartsView().tabItem { Label("Charts", systemImage: "chart.xyaxis.line") }
-            SoonView(title: "Plans").tabItem { Label("Plans", systemImage: "square.stack") }
-            SoonView(title: "Wallet").tabItem { Label("Wallet", systemImage: "wallet.pass") }
+            PlansView().tabItem { Label("Plans", systemImage: "square.stack") }
+            WalletView().tabItem { Label("Wallet", systemImage: "wallet.pass") }
             ProfileView().tabItem { Label("Profile", systemImage: "person") }
         }
         .environment(live)

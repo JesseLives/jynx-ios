@@ -5,13 +5,23 @@ struct ProfileView: View {
     @Environment(Session.self) private var session
     @AppStorage("appearance") private var appearance: Appearance = .light
     @State private var confirmLogout = false
+    @State private var extending: String?
     private let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
-                    if let me = session.me { header(me); plans(me); wallet(me) }
+                    if let me = session.me {
+                        header(me); plans(me)
+                        CardGroup {
+                            NavigationLink { PaymentsView() } label: {
+                                Row(symbol: "creditcard", title: "Payments") {
+                                    Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.muted)
+                                }
+                            }.buttonStyle(.plain)
+                        }
+                    }
                     CardGroup {
                         Row(symbol: "circle.lefthalf.filled", title: "Appearance") {
                             Menu {
@@ -37,6 +47,7 @@ struct ProfileView: View {
             .background(Theme.bg)
             .refreshable { await session.refreshMe() }
             .toolbar(.hidden, for: .navigationBar)
+            .sheet(item: Binding(get: { extending.map(Extend.init) }, set: { extending = $0?.id })) { e in PlansView(preselect: e.id) }
             .confirmationDialog("Log out of Jynx?", isPresented: $confirmLogout, titleVisibility: .visible) {
                 Button("Log out", role: .destructive) { Task { await session.signOut() } }
             }
@@ -61,16 +72,13 @@ struct ProfileView: View {
             }
             ForEach(Array(me.subscriptions.enumerated()), id: \.element.productId) { i, s in
                 if i > 0 { Divider().padding(.leading, 68) }
-                Row(symbol: "square.stack.3d.up", title: s.productName, subtitle: until(s.endsAt)) { EmptyView() }
-            }
-        }
-    }
-
-    private func wallet(_ me: Me) -> some View {
-        CardGroup {
-            Row(symbol: "wallet.pass", title: "Wallet") {
-                Text((Double(me.wallet.balance) / 100).formatted(.currency(code: "USD").locale(Locale(identifier: "en_US"))))
-                    .font(.open(15)).foregroundStyle(Theme.muted).monospacedDigit()
+                Row(symbol: "square.stack.3d.up", title: s.productName, subtitle: until(s.endsAt)) {
+                    if Features.sells {
+                        Button("Extend") { extending = s.productId }
+                            .font(.open(15, .bold)).foregroundStyle(.white).padding(.horizontal, 16).frame(height: 38)
+                            .background(Theme.primary, in: Capsule())
+                    }
+                }
             }
         }
     }
@@ -100,3 +108,5 @@ private struct Row<Trailing: View>: View {
         .padding(.horizontal, 14).padding(.vertical, 12)
     }
 }
+
+private struct Extend: Identifiable { let id: String }
