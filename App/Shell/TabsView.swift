@@ -18,5 +18,3 @@ struct TabsView: View {
         .onDisappear { live.stop() }
     }
 }
-
-struct ChatsListView: View { var body: some View { Text("Chats") } }
