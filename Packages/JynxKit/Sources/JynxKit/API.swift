@@ -110,6 +110,8 @@ public struct API: Sendable {
         return (try await perform(r) as Created).payment.id
     }
 
+    public func community() async throws -> Community { (try await call("GET", "/api/community") as CommunityReply).community }
+
     // MARK: Copier
 
     public func copier() async throws -> CopierState { try await call("GET", "/api/copier") }

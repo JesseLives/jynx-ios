@@ -109,9 +109,12 @@ struct CardGroup<Content: View>: View {
 }
 
 struct IconTile: View {
-    let symbol: String
+    let image: Image
+    var size: CGFloat = 17
+    init(symbol: String) { image = Image(systemName: symbol) }
+    init(brand: String) { image = Image("brand-\(brand)"); size = 18 }
     var body: some View {
         RoundedRectangle(cornerRadius: 12).fill(Theme.primarySoft).frame(width: 40, height: 40)
-            .overlay(Image(systemName: symbol).font(.system(size: 17, weight: .medium)).foregroundStyle(Theme.primary))
+            .overlay(image.resizable().scaledToFit().frame(width: size, height: size).fontWeight(.medium).foregroundStyle(Theme.primary))
     }
 }

@@ -9,9 +9,14 @@ struct CopierView: View {
     @State private var flips = 0
     @State private var buying = false
     @State private var confirmDisconnect = false
+    var pushed = false
 
     var body: some View {
-        NavigationStack {
+        if pushed { page.toolbar(.visible, for: .navigationBar).navigationBarTitleDisplayMode(.inline) }
+        else { NavigationStack { page.toolbar(.hidden, for: .navigationBar) } }
+    }
+
+    private var page: some View {
             ScrollView {
                 VStack(spacing: 22) {
                     PageTitle(text: "Copier")
@@ -22,7 +27,6 @@ struct CopierView: View {
                 .padding(.horizontal, 16).padding(.bottom, 28)
             }
             .background(Theme.bg)
-            .toolbar(.hidden, for: .navigationBar)
             .refreshable { await load() }
             .task(id: state?.account?.status) { await poll() }
             .sheet(isPresented: $buying, onDismiss: { Task { await load() } }) { PlansView(startKind: .copier, closable: true) }
@@ -30,7 +34,6 @@ struct CopierView: View {
                 Button("Disconnect", role: .destructive) { Task { await disconnect() } }
             } message: { Text("Open copied trades stay open in MT5.") }
             .sensoryFeedback(.impact(weight: .medium), trigger: flips)
-        }
     }
 
     private func poll() async {

@@ -1,0 +1,18 @@
+{
+  "ok": true,
+  "community": {
+    "email": "support@justsal.xyz",
+    "telegram": "https://t.me/jynx_support",
+    "channel": "https://t.me/jynx_results",
+    "youtube": "https://youtube.com/@jynx",
+    "instagram": "https://instagram.com/jynx",
+    "facebook": "https://facebook.com/jynx",
+    "x": "https://x.com/jynx",
+    "faq": [
+      {
+        "q": "How do signals work?",
+        "a": "The team posts each trade in your channel."
+      }
+    ]
+  }
+}

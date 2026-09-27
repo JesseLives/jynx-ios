@@ -2,10 +2,10 @@
   "ok": true,
   "products": [
     {
-      "id": "00d03fbe-36e2-4ab6-905b-807d24f8b146",
+      "id": "f7dd8254-d264-4e92-a627-3458a27010ab",
       "leaderId": "00000000-0000-0000-0000-000000000001",
       "kind": "channel",
-      "name": "P-t9lho",
+      "name": "P-1vx45",
       "description": "",
       "active": true,
       "prices": {
@@ -15,24 +15,24 @@
         "12": 82999
       },
       "appleIds": {
-        "1": "xyz.justsal.jynx.00d03fbe.1m",
-        "3": "xyz.justsal.jynx.00d03fbe.3m",
-        "6": "xyz.justsal.jynx.00d03fbe.6m",
-        "12": "xyz.justsal.jynx.00d03fbe.12m"
+        "1": "xyz.justsal.jynx.f7dd8254.1m",
+        "3": "xyz.justsal.jynx.f7dd8254.3m",
+        "6": "xyz.justsal.jynx.f7dd8254.6m",
+        "12": "xyz.justsal.jynx.f7dd8254.12m"
       }
     },
     {
-      "id": "37d93c5e-19f8-44c6-9302-6b21bddbd16c",
+      "id": "a98c0570-9e24-4fe1-a974-661a703a5c84",
       "leaderId": "00000000-0000-0000-0000-000000000001",
       "kind": "copier",
-      "name": "P-ac1gb",
+      "name": "P-92t9h",
       "description": "",
       "active": true,
       "prices": {
         "1": 2999
       },
       "appleIds": {
-        "1": "xyz.justsal.jynx.37d93c5e.1m"
+        "1": "xyz.justsal.jynx.a98c0570.1m"
       }
     }
   ],

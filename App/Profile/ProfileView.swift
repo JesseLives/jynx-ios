@@ -20,7 +20,11 @@ struct ProfileView: View {
                     if let me = session.me {
                         header(me); plans(me)
                         if let renewError { Text(renewError).font(.open(14)).foregroundStyle(Theme.down) }
-                        if !Features.copier, let a = copier?.account { copierStatus(CopierPower.of(hasPass: copier?.hasPass ?? false, account: a)) }
+                        if Features.copier && me.copierEnabled != false {
+                            CardGroup {
+                                NavigationLink { CopierView(pushed: true) } label: { copierRow(chevron: true) }.buttonStyle(.plain)
+                            }
+                        } else if copier?.account != nil { CardGroup { copierRow(chevron: false) } }
                         CardGroup {
                             NavigationLink { WalletView() } label: {
                                 Row(symbol: "wallet.pass", title: "Wallet") {
@@ -70,7 +74,7 @@ struct ProfileView: View {
             .toolbar(.hidden, for: .navigationBar)
             .sheet(item: Binding(get: { extending.map(Extend.init) }, set: { extending = $0?.id })) { e in PlansView(preselect: e.id, closable: true) }
             .sheet(isPresented: $deleting) { DeleteAccountView() }
-            .task { if !Features.copier { copier = try? await session.api.copier() } }
+            .task { copier = try? await session.api.copier() }
             .onChange(of: alarm) { AlarmPlayer.play(alarm) }   // hear the choice
             .confirmationDialog("Log out of Jynx?", isPresented: $confirmLogout, titleVisibility: .visible) {
                 Button("Log out", role: .destructive) { Task { await session.signOut() } }
@@ -127,11 +131,15 @@ struct ProfileView: View {
         renewing.remove(s.productId)
     }
 
-    private func copierStatus(_ power: CopierPower) -> some View {
-        CardGroup {
-            Row(symbol: "power", title: "Copier", subtitle: power.sub) {
-                Text(power.label).font(.open(15, .semibold))
-                    .foregroundStyle(power.ring == .on ? Theme.up : power.ring == .error ? Theme.down : Theme.muted)
+    private func copierRow(chevron: Bool) -> some View {
+        let power = CopierPower.of(hasPass: copier?.hasPass ?? false, account: copier?.account)
+        return Row(symbol: "power", title: "Copier", subtitle: copier == nil ? nil : power.sub) {
+            HStack(spacing: 8) {
+                if copier != nil {
+                    Text(power.label).font(.open(15, .semibold))
+                        .foregroundStyle(power.ring == .on ? Theme.up : power.ring == .error ? Theme.down : Theme.muted)
+                }
+                if chevron { Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.muted) }
             }
         }
     }

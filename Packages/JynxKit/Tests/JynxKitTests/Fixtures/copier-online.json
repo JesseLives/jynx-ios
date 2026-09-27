@@ -14,24 +14,24 @@
   },
   "copies": [
     {
-      "id": "1a4d3ad3-81a5-4ab7-b0df-3b486ff80fe0",
+      "id": "8153e91f-58b5-43dc-928f-900ae40c3a1d",
       "symbol": "XAUUSD",
       "side": "sell",
       "status": "skipped",
       "reason": "price_moved",
       "volume": null,
       "openPrice": null,
-      "createdAt": "2026-09-27T06:49:36.879Z"
+      "createdAt": "2026-09-27T07:46:15.867Z"
     },
     {
-      "id": "0af5fdcd-1ab4-4e21-8f4d-778a356ce46f",
+      "id": "fe612d70-191c-459c-9405-e334015d3424",
       "symbol": "XAUUSD",
       "side": "buy",
       "status": "opened",
       "reason": null,
       "volume": 0.1,
       "openPrice": null,
-      "createdAt": "2026-09-27T06:49:36.865Z"
+      "createdAt": "2026-09-27T07:46:15.849Z"
     }
   ]
 }
