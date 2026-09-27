@@ -48,7 +48,7 @@ struct SignalCardView: View {
         let done = s.status != .running
         let tick = live(s)
         let livePips = tick.flatMap { Pips.value(symbol: s.symbol, side: s.side, entry: Double(s.entry) ?? 0, exit: $0.p) }
-        let fresh = tick.map { Date().timeIntervalSince1970 - $0.t < 60 } ?? false
+        let fresh = prices.connected && (tick.map { Date().timeIntervalSince1970 - $0.t < 60 } ?? false)
         let fills = TargetProgress.fills(side: s.side, entry: Double(s.entry) ?? 0, tps: s.tps.compactMap(Double.init),
                                          hits: s.tpHits, price: tick?.p)
         let sideColor = done ? Theme.muted : s.side == .buy ? Theme.up : Theme.down

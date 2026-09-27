@@ -103,14 +103,13 @@ struct ChartsView: View {
             catch is CancellationError { return }
             catch { session.handle(error); config = .standard }
         }
-        await loadCandles(); await loadSniper(); await loadSignals(); await loadDayOpen()
+        await loadCandles(); await loadSignals()
     }
 
     private func switchTo(_ next: Timeframe) async {
         switching = true; sniper = nil; crosshair = nil
         await loadCandles(resetView: true)
-        await loadSniper()
-        switching = false
+        if tf == next { switching = false }
     }
 
     private func loadCandles(resetView: Bool = false) async {
@@ -121,8 +120,12 @@ struct ChartsView: View {
             bars = c; failed = false
             if resetView { viewport = nil }
             await loadDayOpen()
+            await loadSniper()
         } catch is CancellationError {
-        } catch { session.handle(error); if bars.isEmpty { failed = true } }
+        } catch {
+            session.handle(error)
+            if resetView || bars.count < 2 { bars = []; failed = true }
+        }
     }
 
     private func loadSniper() async {
@@ -142,6 +145,7 @@ struct ChartsView: View {
     }
 
     private func take(_ tick: PriceTick) {
+        guard !switching, !failed, !bars.isEmpty else { return }
         let (bar, fresh) = fold(bars.last, tf, t: tick.t, price: tick.p)
         if !fresh && bar == bars.last { return }
         if fresh {

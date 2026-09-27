@@ -44,6 +44,7 @@ struct CandleCanvas: View {
     private func panGesture(vp: Viewport, plotW: Double) -> some Gesture {
         DragGesture(minimumDistance: 4)
             .onChanged { g in
+                guard zoomFrom == nil else { return }
                 let from = panFrom ?? vp
                 if panFrom == nil { panFrom = vp }
                 viewport = from.panned(by: g.translation.width, count: bars.count, width: plotW)
@@ -54,6 +55,7 @@ struct CandleCanvas: View {
     private func zoomGesture(vp: Viewport, plotW: Double) -> some Gesture {
         MagnifyGesture()
             .onChanged { g in
+                panFrom = nil
                 let from = zoomFrom ?? vp
                 if zoomFrom == nil { zoomFrom = vp }
                 viewport = from.zoomed(by: g.magnification, anchorX: min(plotW, g.startLocation.x), count: bars.count, width: plotW)
