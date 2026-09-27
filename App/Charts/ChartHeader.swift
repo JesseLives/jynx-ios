@@ -132,23 +132,35 @@ struct SignalChips: View {
     let pick: (String) -> Void
 
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(signals) { s in
-                    let on = s.id == (picked ?? signals.first?.id)
-                    Button { pick(s.id) } label: {
-                        HStack(spacing: 6) {
-                            Text(s.side == .buy ? "Buy" : "Sell").font(.open(13.5, .heavy)).foregroundStyle(s.side == .buy ? up : down)
-                            Text(s.entry.formatted(.number.precision(.fractionLength(2)).grouping(.never))).font(.open(13.5, .bold))
-                                .foregroundStyle(Theme.fg).monospacedDigit()
-                            Text(s.room).font(.open(12)).foregroundStyle(Theme.muted).lineLimit(1)
-                        }
-                        .padding(.horizontal, 12).padding(.vertical, 7)
-                        .background(on ? Theme.primarySoft : Theme.card, in: Capsule())
-                        .overlay(Capsule().stroke(on ? Theme.primary : Theme.borderSoft))
-                    }.buttonStyle(.plain)
-                }
-            }.padding(.horizontal, 16)
+        if signals.count == 1, let s = signals.first {
+            card(s, on: false).padding(.horizontal, 16)
+        } else {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(signals) { s in
+                        Button { pick(s.id) } label: { card(s, on: s.id == (picked ?? signals.first?.id)) }
+                            .buttonStyle(.plain)
+                            .containerRelativeFrame(.horizontal) { w, _ in w * 0.82 }
+                    }
+                }.scrollTargetLayout()
+            }
+            .scrollTargetBehavior(.viewAligned)
+            .contentMargins(.horizontal, 16, for: .scrollContent)
         }
+    }
+
+    private func card(_ s: ChartSignal, on: Bool) -> some View {
+        HStack(spacing: 10) {
+            Text(s.side == .buy ? "BUY" : "SELL").font(.open(11, .heavy)).tracking(0.7).foregroundStyle(.white)
+                .padding(.horizontal, 8).padding(.vertical, 4)
+                .background(s.side == .buy ? up : down, in: RoundedRectangle(cornerRadius: 8))
+            Text(s.entry.formatted(.number.locale(Locale(identifier: "en_US")).precision(.fractionLength(2))))
+                .font(.open(15.5, .heavy)).foregroundStyle(Theme.fg).monospacedDigit()
+            Spacer(minLength: 8)
+            Text(s.room).font(.open(12.5)).foregroundStyle(Theme.muted).lineLimit(1)
+        }
+        .padding(.horizontal, 10).padding(.vertical, 8)
+        .background(Theme.card, in: RoundedRectangle(cornerRadius: 16))
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(on ? Theme.primary : Theme.borderSoft, lineWidth: on ? 1.5 : 1))
     }
 }
