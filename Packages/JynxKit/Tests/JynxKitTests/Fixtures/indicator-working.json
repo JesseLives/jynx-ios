@@ -1,0 +1,46 @@
+{
+  "ok": true,
+  "locked": false,
+  "profile": "1h",
+  "buys": [
+    1788955200,
+    1789567200,
+    1789974000,
+    1790175600
+  ],
+  "sells": [],
+  "wins": [
+    1789023600,
+    1789635600,
+    1790042400,
+    1790244000
+  ],
+  "losses": [],
+  "record": true,
+  "panel": {
+    "state": "Trend up",
+    "stars": 3,
+    "entry": 3800.26,
+    "stop": 3783.3453668289017,
+    "target": 3851.003899513296,
+    "risk": 16.914633171098558,
+    "reward": 50.74389951329567,
+    "trades": 4,
+    "wins": 4,
+    "losses": 0,
+    "winRate": 100,
+    "profitFactor": null,
+    "expectancy": 2.9819760668609554,
+    "worstRun": 0,
+    "expectedRun": null,
+    "open": 0,
+    "maxOpen": 1
+  },
+  "live": {
+    "since": null,
+    "calls": 0,
+    "closed": 0,
+    "wins": 0,
+    "netR": 0
+  }
+}

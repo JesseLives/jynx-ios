@@ -1,0 +1,19 @@
+{
+  "ok": true,
+  "signals": [
+    {
+      "id": "55701b8e-3cd3-4122-92be-67f835614a5d",
+      "side": "sell",
+      "entry": 3700,
+      "sl": 3712,
+      "slMoved": false,
+      "tps": [
+        3690,
+        3680
+      ],
+      "tpHits": [],
+      "createdAt": 1790484671.372,
+      "room": "P-u3jev"
+    }
+  ]
+}

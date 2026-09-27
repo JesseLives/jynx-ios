@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "chart": {
+    "symbol": "OANDA:XAUUSD",
+    "interval": "15",
+    "style": "candles",
+    "upColor": "#00b87a",
+    "downColor": "#f4212e",
+    "background": null,
+    "grid": null,
+    "toolbar": true
+  }
+}

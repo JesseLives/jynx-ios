@@ -40,6 +40,14 @@ public struct API: Sendable {
         let _: Nothing = try await call("POST", "/api/rooms/\(room)/read", ["messageId": messageId])
     }
     public func signal(id: String) async throws -> Signal { (try await call("GET", "/api/signals/\(id)") as SignalBody).signal }
+    public func chartConfig() async throws -> ChartConfig { (try await call("GET", "/api/chart") as ChartConfigBody).chart }
+    public func candles(_ tf: Timeframe, limit: Int? = nil) async throws -> [Bar] {
+        var q = ["tf": tf.rawValue]
+        if let limit { q["limit"] = String(limit) }
+        return (try await call("GET", "/api/chart/candles", query: q) as CandlesBody).candles
+    }
+    public func indicator(_ tf: Timeframe) async throws -> Sniper { try await call("GET", "/api/chart/indicator", query: ["tf": tf.rawValue]) }
+    public func chartSignals() async throws -> [ChartSignal] { (try await call("GET", "/api/chart/signals") as ChartSignalsBody).signals }
     public func mediaURL(messageId: String) -> URL { base.appending(path: "api/media/\(messageId)") }
 
     func request(_ method: String, _ path: String, _ body: [String: String]? = nil, query: [String: String] = [:]) -> URLRequest {
