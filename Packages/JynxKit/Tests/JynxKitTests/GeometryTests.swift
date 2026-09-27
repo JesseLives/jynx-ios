@@ -61,3 +61,11 @@ private let W = 400.0   // plot width in points
 @Test func labelsDeclutterByPriority() {
     #expect(declutter([100, 108, 200, 210, 300], gap: 16) == [true, false, true, false, true])
 }
+
+@Test func tickDecimalsShowEveryTickExactly() {
+    #expect(PriceScale.decimals([4300, 4310, 4320]) == 0)
+    #expect(PriceScale.decimals([4300, 4302.5, 4305]) == 1)
+    #expect(PriceScale.decimals([4300, 4325, 4350]) == 0)
+    #expect(PriceScale.decimals([1.0825, 1.085, 1.0875]) == 4)
+    #expect(PriceScale.decimals([0.25, 0.5, 0.75]) == 2)
+}

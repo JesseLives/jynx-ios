@@ -96,7 +96,8 @@ struct CandleCanvas: View {
         let muted = Theme.muted
 
         let ticks = PriceScale.ticks(lo: scale.lo, hi: scale.hi, height: plotH)
-        let decimals = ticks.count > 1 ? max(2, decimalsFor(ticks[1] - ticks[0])) : 2
+        let decimals = PriceScale.decimals(ticks)
+        let tagDecimals = max(2, decimals)
         for p in ticks {
             var line = Path(); line.move(to: CGPoint(x: 0, y: y(p))); line.addLine(to: CGPoint(x: plotW, y: y(p)))
             ctx.stroke(line, with: .color(grid), lineWidth: 1)
@@ -179,14 +180,14 @@ struct CandleCanvas: View {
                 plot.draw(Text(l.title).font(.open(11, .bold)).foregroundStyle(l.color),
                           at: CGPoint(x: plotW - 6, y: y(l.price) - 3), anchor: .bottomTrailing)
             }
-            tag(&ctx, price: l.price, y: y(l.price), color: l.color, decimals: decimals, plotW: plotW)
+            tag(&ctx, price: l.price, y: y(l.price), color: l.color, decimals: tagDecimals, plotW: plotW)
         }
 
         if let p = lastPrice ?? bars.last?.c, let lastBar = bars.last {
             let color = lastBar.c >= lastBar.o ? up : down
             var path = Path(); path.move(to: CGPoint(x: 0, y: y(p))); path.addLine(to: CGPoint(x: plotW, y: y(p)))
             plot.stroke(path, with: .color(color), style: StrokeStyle(lineWidth: 1, dash: [2, 3]))
-            tag(&ctx, price: p, y: y(p), color: color, decimals: decimals, plotW: plotW)
+            tag(&ctx, price: p, y: y(p), color: color, decimals: tagDecimals, plotW: plotW)
         }
 
         if let c = crosshair, range.contains(c) {
@@ -194,7 +195,7 @@ struct CandleCanvas: View {
             var h = Path(); h.move(to: CGPoint(x: 0, y: y(bars[c].c))); h.addLine(to: CGPoint(x: plotW, y: y(bars[c].c)))
             ctx.stroke(v, with: .color(muted), style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
             ctx.stroke(h, with: .color(muted), style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
-            tag(&ctx, price: bars[c].c, y: y(bars[c].c), color: Theme.fg, decimals: decimals, plotW: plotW)
+            tag(&ctx, price: bars[c].c, y: y(bars[c].c), color: Theme.fg, decimals: tagDecimals, plotW: plotW)
         }
     }
 
@@ -205,6 +206,5 @@ struct CandleCanvas: View {
                     .foregroundStyle(.white), at: CGPoint(x: rect.midX, y: rect.midY), anchor: .center)
     }
 
-    private func decimalsFor(_ step: Double) -> Int { step >= 1 ? 0 : Int((-log10(step)).rounded(.up)) }
     private func isMidnight(_ d: Date) -> Bool { Calendar.current.dateComponents([.hour, .minute], from: d) == DateComponents(hour: 0, minute: 0) }
 }

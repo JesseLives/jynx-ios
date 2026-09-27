@@ -57,11 +57,13 @@ struct CommunityView: View {
             }
         }
 
-        header("FAQ")
-        CardGroup {
-            ForEach(Array(c.faq.enumerated()), id: \.element.id) { i, f in
-                if i > 0 { Divider().padding(.leading, 14) }
-                question(f)
+        if !c.faq.isEmpty {
+            header("FAQ")
+            CardGroup {
+                ForEach(Array(c.faq.enumerated()), id: \.offset) { i, f in
+                    if i > 0 { Divider().padding(.leading, 14) }
+                    question(f)
+                }
             }
         }
     }

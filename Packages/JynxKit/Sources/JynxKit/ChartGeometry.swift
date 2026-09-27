@@ -69,6 +69,12 @@ public struct PriceScale: Equatable, Sendable {
         return [1, 2, 2.5, 5, 10].map { $0 * mag }.first { $0 >= raw } ?? 10 * mag
     }
 
+    public static func decimals(_ ticks: [Double]) -> Int {
+        var d = 0
+        while d < 5, ticks.contains(where: { v in let x = v * pow(10, Double(d)); return abs(x - x.rounded()) > 1e-6 }) { d += 1 }
+        return d
+    }
+
     public static func ticks(lo: Double, hi: Double, height: Double) -> [Double] {
         let step = step(lo: lo, hi: hi, height: height)
         var k = (lo / step).rounded(.up), out: [Double] = []
