@@ -10,7 +10,6 @@ struct TabsView: View {
             SoonView(title: "Charts").tabItem { Label("Charts", systemImage: "chart.xyaxis.line") }
             SoonView(title: "Plans").tabItem { Label("Plans", systemImage: "square.stack") }
             SoonView(title: "Wallet").tabItem { Label("Wallet", systemImage: "wallet.pass") }
-            SoonView(title: "Copier").tabItem { Label("Copier", systemImage: "power") }
             ProfileView().tabItem { Label("Profile", systemImage: "person") }
         }
         .environment(live)
