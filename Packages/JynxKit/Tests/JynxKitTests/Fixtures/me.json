@@ -1,17 +1,17 @@
 {
   "ok": true,
   "user": {
-    "id": "4d5931e2-2abe-4026-bd40-073968bcdf0d",
-    "email": "4d5931e2@test.local",
-    "displayName": "4d5931e2",
+    "id": "ba537ac2-4d0c-46f7-8d52-a3b3c6a3148a",
+    "email": "ba537ac2@test.local",
+    "displayName": "ba537ac2",
     "role": "member"
   },
   "subscriptions": [
     {
-      "productId": "f1cad143-5113-49fa-925a-320834779472",
-      "productName": "P-rjemz",
+      "productId": "b50a8fd1-9890-4123-ad38-76a3274718f9",
+      "productName": "P-se069",
       "kind": "channel",
-      "endsAt": "2026-10-27T06:07:32.139Z",
+      "endsAt": "2026-10-27T06:33:32.201Z",
       "autoRenew": false,
       "renewMonths": null,
       "renewError": null

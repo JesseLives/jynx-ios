@@ -5,6 +5,7 @@ struct ProfileView: View {
     @Environment(Session.self) private var session
     @AppStorage("appearance") private var appearance: Appearance = .light
     @State private var confirmLogout = false
+    @State private var deleting = false
     @State private var extending: String?
     @State private var renewing: Set<String> = []
     @State private var renewError: String?
@@ -64,6 +65,8 @@ struct ProfileView: View {
                     }
                     .background(Theme.card, in: RoundedRectangle(cornerRadius: 22))
                     .overlay(RoundedRectangle(cornerRadius: 22).stroke(Theme.borderSoft))
+                    Button("Delete account") { deleting = true }
+                        .font(.open(14, .semibold)).foregroundStyle(Theme.muted).frame(minHeight: 44)
                     Text("Build \(build)").font(.open(12)).foregroundStyle(Theme.muted)
                 }
                 .padding(.horizontal, 16).padding(.top, 20).padding(.bottom, 24)
@@ -72,6 +75,7 @@ struct ProfileView: View {
             .refreshable { await session.refreshMe() }
             .toolbar(.hidden, for: .navigationBar)
             .sheet(item: Binding(get: { extending.map(Extend.init) }, set: { extending = $0?.id })) { e in PlansView(preselect: e.id) }
+            .sheet(isPresented: $deleting) { DeleteAccountView() }
             .onChange(of: alarm) { AlarmPlayer.play(alarm) }   // hear the choice
             .confirmationDialog("Log out of Jynx?", isPresented: $confirmLogout, titleVisibility: .visible) {
                 Button("Log out", role: .destructive) { Task { await session.signOut() } }

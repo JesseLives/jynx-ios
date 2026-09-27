@@ -2,11 +2,26 @@
   "ok": true,
   "rooms": [
     {
-      "id": "5eb7260c-4147-45cb-b223-6c7cee804240",
+      "id": "614a03ac-c22b-4d37-bf27-3c7a950d0759",
       "leaderId": "00000000-0000-0000-0000-000000000001",
       "kind": "channel",
-      "name": "P-pecil",
-      "productId": "1df63ed8-d829-4498-b04f-4737011d4c8c",
+      "name": "P-se069",
+      "productId": "b50a8fd1-9890-4123-ad38-76a3274718f9",
+      "access": "product",
+      "archived": false,
+      "locked": false,
+      "unread": 5,
+      "last": {
+        "body": "Closed at 1.083 +20 pips, result +20 pips",
+        "createdAt": "2026-09-27T06:33:32.364Z"
+      }
+    },
+    {
+      "id": "778fd86a-77e8-400e-8f19-8bc1ce91723b",
+      "leaderId": "00000000-0000-0000-0000-000000000001",
+      "kind": "channel",
+      "name": "P-xa3lf",
+      "productId": "c6471494-e7ab-4883-8270-2fc692ae8f13",
       "access": "product",
       "archived": false,
       "locked": true,
@@ -14,25 +29,10 @@
       "last": null
     },
     {
-      "id": "74d3902c-a9fc-4ac1-baae-7d40b3814efe",
-      "leaderId": "00000000-0000-0000-0000-000000000001",
-      "kind": "channel",
-      "name": "P-rjemz",
-      "productId": "f1cad143-5113-49fa-925a-320834779472",
-      "access": "product",
-      "archived": false,
-      "locked": false,
-      "unread": 5,
-      "last": {
-        "body": "Closed at 1.083 +20 pips, result +20 pips",
-        "createdAt": "2026-09-27T06:07:32.248Z"
-      }
-    },
-    {
-      "id": "68e0be64-8fb4-4482-a4c7-4adb5769cc04",
+      "id": "0528811e-13f6-4b24-b629-e24fc78f7a67",
       "leaderId": "00000000-0000-0000-0000-000000000001",
       "kind": "group",
-      "name": "G-tv5vi",
+      "name": "G-rlqsg",
       "productId": null,
       "access": "everyone",
       "archived": false,
@@ -40,7 +40,7 @@
       "unread": 2,
       "last": {
         "body": "",
-        "createdAt": "2026-09-27T06:07:32.266Z"
+        "createdAt": "2026-09-27T06:33:32.386Z"
       }
     }
   ]

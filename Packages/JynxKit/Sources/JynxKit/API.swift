@@ -48,6 +48,9 @@ public struct API: Sendable {
                                         ["username": .string(username), "email": .string(email), "password": .string(password), "confirm": .string(confirm)])
     }
     public func signOut() async throws { let _: Nothing = try await call("POST", "/api/auth/logout", [:]) }
+    public func deleteAccount(password: String) async throws {
+        let _: Nothing = try await call("POST", "/api/account/delete", ["password": .string(password)])
+    }
     public func rooms() async throws -> [Room] { (try await call("GET", "/api/rooms") as RoomsBody).rooms }
     public func messages(room: String, before: String? = nil) async throws -> MessagesPage {
         try await call("GET", "/api/rooms/\(room)/messages", query: before.map { ["before": $0] } ?? [:])

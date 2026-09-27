@@ -72,3 +72,13 @@ func api(_ t: StubTransport) -> API { API(base: URL(string: "https://signals.jus
     let t = StubTransport(); t.fails = URLError(.cancelled)
     await #expect(throws: CancellationError.self) { try await api(t).rooms() }
 }
+
+@Test func deletingTheAccount() async throws {
+    let t = StubTransport(); t.body = try fixture("account-deleted")
+    try await api(t).deleteAccount(password: "pw")
+    #expect(t.seen[0].url?.path == "/api/account/delete" && t.seen[0].httpMethod == "POST")
+    #expect(try JSONSerialization.jsonObject(with: t.seen[0].httpBody!) as? [String: String] == ["password": "pw"])
+    t.status = 403; t.body = try fixture("error-bad-password")
+    await #expect(throws: APIError.server(status: 403, code: "bad_password", field: nil, message: nil)) { try await api(t).deleteAccount(password: "x") }
+    #expect(Copy.error(APIError.server(status: 403, code: "bad_password", field: nil, message: nil)) == "That password is not right.")
+}

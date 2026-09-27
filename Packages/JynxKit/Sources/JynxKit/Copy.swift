@@ -26,6 +26,8 @@ public enum Copy {
         "already_connected": "An MT5 account is already connected. Disconnect it first.",
         "copier_unavailable": "The copier is not available right now.",
         "not_connected": "No MT5 account is connected.",
+        "bad_password": "That password is not right.",
+        "staff_account": "Staff accounts are removed by the owner.",
         "qr_unavailable": "Payment by QR is not available right now. Try again in a minute, or pay with USDT.",
     ]
 
