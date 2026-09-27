@@ -19,35 +19,19 @@ struct MessageRow: View {
         }
     }
 
-    // MARK: A stop on the line
+    // MARK: A team post, signal or update
 
     private var stop: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Circle().fill(dotColor).frame(width: 12, height: 12)
-                .overlay(Circle().stroke(Theme.bg, lineWidth: 2))
-                .padding(.top, 4)
-            VStack(alignment: .leading, spacing: 6) {
-                meta
-                content
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+        VStack(alignment: .leading, spacing: 6) {
+            meta
+            content
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.bottom, 10)
-        .background(alignment: .topLeading) {
-            Rectangle().fill(Theme.borderSoft).frame(width: 2)
-                .padding(.leading, 5).padding(.top, 18).padding(.bottom, -12)
-        }
         .accessibilityElement(children: .combine)
     }
 
     private var tone: Look.Tone { message.kind == .signalUpdate ? Look.updateTone(message.body) : .neutral }
-
-    private var dotColor: Color {
-        switch message.kind {
-        case .signalUpdate, .signal: Theme.primary
-        default: message.author?.staff ?? true ? Theme.primary : Theme.muted
-        }
-    }
 
     @ViewBuilder private var meta: some View {
         let time = Text(" · \(Format.clock(message.createdAt))").foregroundColor(Theme.muted)
