@@ -1,0 +1,35 @@
+{
+  "ok": true,
+  "signal": {
+    "id": "14d8e4e0-3d0c-486e-8e2f-f15520b1cd34",
+    "roomId": "ea843d92-1e4d-45ba-9912-2acba505bc4a",
+    "symbol": "GBPUSD",
+    "side": "sell",
+    "market": false,
+    "entry": "1.27",
+    "sl": "1.273",
+    "tps": [
+      "1.265"
+    ],
+    "note": "",
+    "hasChart": false,
+    "status": "cancelled",
+    "openFraction": "1",
+    "tpHits": [],
+    "slMovedTo": null,
+    "realizedPips": 0,
+    "resultPips": null,
+    "createdAt": "2026-09-27T08:40:17.238Z",
+    "closedAt": "2026-09-27T08:40:17.250Z",
+    "updates": [
+      {
+        "kind": "cancel",
+        "price": null,
+        "fraction": null,
+        "tp": null,
+        "pips": null,
+        "createdAt": "2026-09-27T08:40:17.250Z"
+      }
+    ]
+  }
+}

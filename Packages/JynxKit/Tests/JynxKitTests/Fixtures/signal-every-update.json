@@ -1,0 +1,63 @@
+{
+  "ok": true,
+  "signal": {
+    "id": "d69f4c0d-205a-4326-b398-c8a7c6328a93",
+    "roomId": "ea843d92-1e4d-45ba-9912-2acba505bc4a",
+    "symbol": "XAUUSD",
+    "side": "buy",
+    "market": false,
+    "entry": "2350",
+    "sl": "2340",
+    "tps": [
+      "2365",
+      "2380",
+      "2400"
+    ],
+    "note": "",
+    "hasChart": false,
+    "status": "closed",
+    "openFraction": "0",
+    "tpHits": [
+      1
+    ],
+    "slMovedTo": "2350",
+    "realizedPips": 75,
+    "resultPips": 75,
+    "createdAt": "2026-09-27T08:40:17.029Z",
+    "closedAt": "2026-09-27T08:40:17.138Z",
+    "updates": [
+      {
+        "kind": "move_sl",
+        "price": "2345",
+        "fraction": null,
+        "tp": null,
+        "pips": null,
+        "createdAt": "2026-09-27T08:40:17.080Z"
+      },
+      {
+        "kind": "tp_hit",
+        "price": "2365",
+        "fraction": "0.5",
+        "tp": 1,
+        "pips": 150,
+        "createdAt": "2026-09-27T08:40:17.108Z"
+      },
+      {
+        "kind": "breakeven",
+        "price": "2350",
+        "fraction": null,
+        "tp": null,
+        "pips": null,
+        "createdAt": "2026-09-27T08:40:17.124Z"
+      },
+      {
+        "kind": "sl_hit",
+        "price": "2350",
+        "fraction": "0.5",
+        "tp": null,
+        "pips": 0,
+        "createdAt": "2026-09-27T08:40:17.138Z"
+      }
+    ]
+  }
+}
