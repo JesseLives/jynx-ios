@@ -100,29 +100,37 @@ struct WalletView: View {
 private struct WalletCard: View {
     let wallet: WalletOverview
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            Color(hex: 0x10141a)
-            Circle().fill(Theme.primary).frame(width: 300, height: 300).offset(x: 190, y: 70)
-            Circle().fill(Color(hex: 0x0d63b0)).frame(width: 190, height: 190).offset(x: 110, y: 150)
-            VStack(alignment: .leading, spacing: 0) {
-                HStack {
-                    RoundedRectangle(cornerRadius: 9).fill(Theme.primary).frame(width: 32, height: 32)
-                        .overlay(Text("J").font(.open(15, .heavy)).foregroundStyle(.white))
-                    Spacer()
-                    Text("Jynx wallet").font(.open(14, .semibold)).foregroundStyle(.white.opacity(0.7))
-                }
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                RoundedRectangle(cornerRadius: 9).fill(Theme.primary).frame(width: 32, height: 32)
+                    .overlay(Text("J").font(.open(15, .heavy)).foregroundStyle(.white))
                 Spacer()
-                Text("Balance").font(.open(14, .semibold)).foregroundStyle(.white.opacity(0.7))
-                Text(Money.dollars(wallet.balance)).font(.open(40, .heavy)).tracking(-1.2).foregroundStyle(.white).monospacedDigit()
-                    .contentTransition(.numericText())
-                HStack {
-                    Text("Withdrawable \(Money.dollars(wallet.withdrawable))")
-                    Spacer()
-                    Text(wallet.username).lineLimit(1)
-                }.font(.open(13.5, .semibold)).foregroundStyle(.white.opacity(0.85)).padding(.top, 6)
-            }.padding(22)
+                Text("Jynx wallet").font(.open(14, .semibold)).foregroundStyle(.white.opacity(0.7))
+            }
+            Spacer(minLength: 24)
+            Text("Balance").font(.open(14, .semibold)).foregroundStyle(.white.opacity(0.7))
+            Text(Money.dollars(wallet.balance)).font(.open(40, .heavy)).tracking(-1.2).foregroundStyle(.white).monospacedDigit()
+                .contentTransition(.numericText())
+            HStack {
+                Text("Withdrawable \(Money.dollars(wallet.withdrawable))")
+                Spacer()
+                Text(wallet.username).lineLimit(1)
+            }.font(.open(13.5, .semibold)).foregroundStyle(.white.opacity(0.85)).padding(.top, 6)
         }
-        .frame(height: 210).clipShape(RoundedRectangle(cornerRadius: 26))
+        .padding(22)
+        .frame(maxWidth: .infinity, minHeight: 210, alignment: .leading)
+        .background {
+            GeometryReader { g in
+                ZStack {
+                    Color(hex: 0x10141a)
+                    Circle().fill(Theme.primary).frame(width: g.size.width * 0.8, height: g.size.width * 0.8)
+                        .position(x: g.size.width * 0.95, y: g.size.height * 0.95)
+                    Circle().fill(Color(hex: 0x0d63b0)).frame(width: g.size.width * 0.5, height: g.size.width * 0.5)
+                        .position(x: g.size.width * 0.58, y: g.size.height * 1.1)
+                }
+            }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 26))
         .shadow(color: .black.opacity(0.18), radius: 16, y: 8)
     }
 }
