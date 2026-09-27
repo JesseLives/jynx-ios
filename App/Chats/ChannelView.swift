@@ -10,6 +10,7 @@ struct ChannelView: View {
     @State private var loaded = false
     @State private var loadingOlder = false
     @State private var pinned = true
+    @State private var ready = false
     @State private var error: String?
     @State private var viewing: URL?
     private let bottom = "bottom"
@@ -18,9 +19,9 @@ struct ChannelView: View {
         ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 10) {
-                    if loaded && !timeline.reachedStart {
+                    if ready && !timeline.reachedStart {
                         ProgressView().frame(maxWidth: .infinity).padding(8)
-                            .onAppear { Task { await older(proxy) } }
+                            .onAppear { Task { await older() } }
                     }
                     if loaded && timeline.messages.isEmpty {
                         Text("No messages yet.").font(.open(15)).foregroundStyle(Theme.muted)
@@ -37,6 +38,7 @@ struct ChannelView: View {
                 }
                 .padding(.horizontal, 12).padding(.vertical, 8)
             }
+            .defaultScrollAnchor(.bottom)
             .background(Theme.bg)
             .safeAreaInset(edge: .top, spacing: 0) { ReconnectingLine() }
             .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -64,20 +66,19 @@ struct ChannelView: View {
             let first = !loaded
             let grew = page.messages.first?.id != timeline.newestId
             timeline.applyLatest(page.messages); verdict = page.canPost; loaded = true; error = nil
-            if first { try? await Task.sleep(for: .milliseconds(30)); proxy.scrollTo(bottom, anchor: .bottom) }
+            if first { proxy.scrollTo(bottom, anchor: .bottom); await Task.yield(); ready = true }
             else if grew && pinned { withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo(bottom, anchor: .bottom) } }
             if pinned { await markRead() }
         } catch { session.handle(error); if !loaded { self.error = Copy.error(error) } }
     }
 
-    private func older(_ proxy: ScrollViewProxy) async {
+    private func older() async {
         guard !loadingOlder, let anchor = timeline.oldestId else { return }
         loadingOlder = true
         defer { loadingOlder = false }
         do {
             let page = try await session.api.messages(room: room.id, before: anchor)
             timeline.applyOlder(page.messages)
-            proxy.scrollTo(anchor, anchor: .top)
         } catch { session.handle(error) }
     }
 

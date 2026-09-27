@@ -4,7 +4,7 @@ import Observation
 
 @Observable @MainActor
 final class Session {
-    enum State: Equatable { case loading, signedOut, signedIn(Me) }
+    enum State: Equatable { case loading, offline, signedOut, signedIn(Me) }
     var state: State = .loading
     let api = API(base: URL(string: "https://signals.justsal.xyz")!, transport: URLSessionTransport())
 
@@ -15,7 +15,7 @@ final class Session {
     func refreshMe() async {
         do { state = .signedIn(try await api.me()) }
         catch APIError.signedOut { state = .signedOut }
-        catch { if me == nil { state = .signedOut } }
+        catch { if me == nil { state = .offline } }
     }
 
     func signIn(login: String, password: String) async throws {
