@@ -78,5 +78,3 @@ struct ReconnectingLine: View {
         }
     }
 }
-
-struct ChannelView: View { let room: Room; var body: some View { Text(room.name) } }
