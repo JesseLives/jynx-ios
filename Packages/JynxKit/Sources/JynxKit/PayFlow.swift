@@ -11,9 +11,12 @@ public struct QRCountdown: Equatable, Sendable {
 }
 
 public enum PayPhase: Equatable, Sendable {
-    case waiting, paid(endsAt: Date?), rejected(String), expired
+    case waiting, checking, paid(endsAt: Date?), rejected(String), expired
 
     public static let expiredReason = "Not paid before the QR expired."
+    public static let grace: TimeInterval = 180
+
+    public var keepsPolling: Bool { self == .waiting || self == .checking }
 
     public static func of(_ state: PaymentState?, expiresAt: Date, now: Date) -> PayPhase {
         switch state?.status {
@@ -21,7 +24,9 @@ public enum PayPhase: Equatable, Sendable {
         case .rejected?:
             let reason = state?.rejectReason ?? ""
             return reason == expiredReason ? .expired : .rejected(reason)
-        default: return now >= expiresAt ? .expired : .waiting
+        default:
+            if now < expiresAt { return .waiting }
+            return now < expiresAt.addingTimeInterval(grace) ? .checking : .expired
         }
     }
 }

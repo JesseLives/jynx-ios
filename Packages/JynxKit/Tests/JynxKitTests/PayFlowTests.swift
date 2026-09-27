@@ -27,8 +27,12 @@ private func state(_ s: PaymentStatus, _ reason: String? = nil, ends: Date? = ni
 
 @Test func expiryIsNotAFailure() {
     let after = expires.addingTimeInterval(1)
-    #expect(PayPhase.of(state(.pending), expiresAt: expires, now: after) == .expired)
-    #expect(PayPhase.of(nil, expiresAt: expires, now: after) == .expired)
+    #expect(PayPhase.of(state(.pending), expiresAt: expires, now: after) == .checking)
+    #expect(PayPhase.of(state(.pending), expiresAt: expires, now: expires.addingTimeInterval(179)) == .checking)
+    #expect(PayPhase.of(state(.pending), expiresAt: expires, now: expires.addingTimeInterval(181)) == .expired)
+    #expect(PayPhase.of(nil, expiresAt: expires, now: expires.addingTimeInterval(181)) == .expired)
+    #expect(PayPhase.of(state(.approved, ends: expires), expiresAt: expires, now: expires.addingTimeInterval(120)) == .paid(endsAt: expires))
+    #expect(PayPhase.checking.keepsPolling && PayPhase.waiting.keepsPolling && !PayPhase.expired.keepsPolling)
     #expect(PayPhase.of(state(.rejected, "Not paid before the QR expired."), expiresAt: expires, now: after) == .expired)
 }
 
@@ -56,11 +60,13 @@ private func state(_ s: PaymentStatus, _ reason: String? = nil, ends: Date? = ni
 }
 
 @Test func manualPaymentGoesAsMultipart() async throws {
-    let t = StubTransport(); t.body = Data(#"{"ok":true,"id":"p9"}"#.utf8)
+    let t = StubTransport(); t.body = try fixture("payment-created")
     let id = try await api(t).payManually(fields: [("productId", "p1"), ("months", "1"), ("method", "usdt"), ("reference", "tx")],
                                           receipt: Data([0xff, 0xd8, 0xff]))
     let r = t.seen[0]
-    #expect(id == "p9" && r.httpMethod == "POST" && r.url?.path == "/api/payments")
+    #expect(id == "7d7d3271-e185-4014-bac7-690d4da7f5ab" && r.httpMethod == "POST" && r.url?.path == "/api/payments")
+    t.body = try fixture("deposit-created")
+    #expect(try await api(t).payManually(fields: [("kind", "deposit")], receipt: nil).isEmpty == false)
     #expect(r.value(forHTTPHeaderField: "Content-Type")?.hasPrefix("multipart/form-data; boundary=") == true)
     #expect(String(decoding: r.httpBody!, as: UTF8.self).contains("name=\"receipt\"; filename=\"receipt.jpg\""))
 }

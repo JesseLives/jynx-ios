@@ -58,6 +58,18 @@ public struct AmountInput: Equatable, Sendable {
         }
     }
 
+    public static func parse(_ text: String, decimalSeparator: String) -> Int? {
+        let dec: Character = decimalSeparator == "," ? "," : "."
+        let grouping: Character = dec == "," ? "." : ","
+        let cleaned = text.filter { !$0.isWhitespace && $0 != grouping }
+        guard !cleaned.isEmpty, cleaned.allSatisfy({ $0.isNumber || $0 == dec }) else { return nil }
+        let parts = cleaned.split(separator: dec, omittingEmptySubsequences: false)
+        guard parts.count <= 2, let whole = Int(parts[0].isEmpty ? "0" : String(parts[0])) else { return nil }
+        let frac = parts.count == 2 ? String(parts[1]) : ""
+        guard frac.count <= 2 else { return nil }
+        return whole * 100 + (Int((frac + "00").prefix(2)) ?? 0)
+    }
+
     public mutating func add(cents more: Int) { set(min(Self.maxCents, (cents ?? 0) + more)) }
 
     private mutating func set(_ c: Int) {

@@ -33,19 +33,23 @@ struct WithdrawSheet: View {
                 Field(label: method == "usdt" ? "USDT address (TRON)" : "ABA account number and name", text: $destination,
                       placeholder: method == "usdt" ? "T…" : "000 000 000, Your Name", kind: .login)
                 if let error { Text(error).font(.open(14)).foregroundStyle(Theme.down) }
-                PrimaryButton(title: "Request withdrawal", busy: busy) { Task { await submit() } }
+                PrimaryButton(title: typedCents.map { "Withdraw \(Money.dollars($0))" } ?? "Request withdrawal", busy: busy) { Task { await submit() } }
                     .disabled(destination.trimmingCharacters(in: .whitespaces).count < 3)
             }
             Spacer()
         }
         .padding(.horizontal, 20)
-        .onAppear { dollars = String(format: "%.2f", Double(wallet.withdrawable) / 100) }
+        .onAppear {
+            let sep = Locale.current.decimalSeparator ?? "."
+            dollars = "\(wallet.withdrawable / 100)\(sep)" + String(format: "%02d", wallet.withdrawable % 100)
+        }
     }
 
+    private var typedCents: Int? { AmountInput.parse(dollars, decimalSeparator: Locale.current.decimalSeparator ?? ".") }
+
     private func submit() async {
-        var input = AmountInput()
-        for ch in dollars.filter({ $0.isNumber || $0 == "." }) { input.press(String(ch)) }
-        guard let cents = input.cents, cents >= wallet.minWithdrawCents else {
+        guard let cents = typedCents else { error = "Enter an amount like 10.50."; return }
+        guard cents >= wallet.minWithdrawCents else {
             error = "The smallest withdrawal is \(Money.dollars(wallet.minWithdrawCents))."; return
         }
         busy = true; error = nil

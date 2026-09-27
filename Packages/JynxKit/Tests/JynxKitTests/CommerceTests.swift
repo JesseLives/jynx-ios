@@ -90,3 +90,15 @@ import Testing
     #expect(bodies[3]["action"] as? String == "withdraw" && bodies[3]["amountCents"] as? Int == 1500)
     #expect(!(bodies[0]["months"] is String))
 }
+
+@Test func typedDollarsReadTheDecimalSeparator() {
+    #expect(AmountInput.parse("10,50", decimalSeparator: ",") == 1050)
+    #expect(AmountInput.parse("10,5", decimalSeparator: ",") == 1050)
+    #expect(AmountInput.parse("1.234,50", decimalSeparator: ",") == 123450)
+    #expect(AmountInput.parse("10.50", decimalSeparator: ".") == 1050)
+    #expect(AmountInput.parse("1,234.50", decimalSeparator: ".") == 123450)
+    #expect(AmountInput.parse("20000", decimalSeparator: ".") == 2_000_000)   // no deposit cap on a withdrawal
+    #expect(AmountInput.parse("10.555", decimalSeparator: ".") == nil)
+    #expect(AmountInput.parse("", decimalSeparator: ".") == nil)
+    #expect(AmountInput.parse("1.2.3", decimalSeparator: ".") == nil)
+}

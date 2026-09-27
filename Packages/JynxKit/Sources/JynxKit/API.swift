@@ -26,6 +26,7 @@ public enum JSONValue: Encodable, Sendable, ExpressibleByStringLiteral, Expressi
 private struct ErrorBody: Decodable { let error: String; let field: String?; let message: String? }
 private struct EndsAt: Decodable { let endsAt: Date? }
 private struct NewId: Decodable { let id: String }
+private struct Created: Decodable { let payment: NewId }
 private struct Nothing: Decodable {}
 
 public struct API: Sendable {
@@ -94,7 +95,7 @@ public struct API: Sendable {
         var r = request("POST", "/api/payments")
         r.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         r.httpBody = Multipart.body(fields: fields, file: file, boundary: boundary)
-        return (try await perform(r) as NewId).id
+        return (try await perform(r) as Created).payment.id
     }
 
     public func mediaURL(messageId: String) -> URL { base.appending(path: "api/media/\(messageId)") }

@@ -42,6 +42,32 @@ struct PlansView: View {
     }
 
     @ViewBuilder private func content(_ plans: PlansBody) -> some View {
+        if Features.sells { shop(plans) } else { owned }
+    }
+
+    private var owned: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Plans").font(.open(32, .heavy)).foregroundStyle(Theme.fg)
+                let subs = session.me?.subscriptions ?? []
+                if subs.isEmpty { Text("No active plan.").font(.open(15)).foregroundStyle(Theme.muted) }
+                ForEach(subs, id: \.productId) { s in
+                    HStack(spacing: 14) {
+                        IconTile(symbol: "square.stack.3d.up")
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(s.productName).font(.open(17, .bold)).foregroundStyle(Theme.fg)
+                            Text("Active until \(s.endsAt.formatted(.dateTime.day().month(.abbreviated).year()))").font(.open(14)).foregroundStyle(Theme.muted)
+                        }
+                        Spacer()
+                    }
+                    .padding(16).background(Theme.card, in: RoundedRectangle(cornerRadius: 22))
+                    .overlay(RoundedRectangle(cornerRadius: 22).stroke(Theme.borderSoft))
+                }
+            }.padding(.horizontal, 16).padding(.top, 20)
+        }
+    }
+
+    @ViewBuilder private func shop(_ plans: PlansBody) -> some View {
         let products = plans.products.filter { $0.kind == kind }
         let product = products.first { $0.id == picked } ?? products.first
         let lengths = product?.lengths ?? []

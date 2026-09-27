@@ -190,12 +190,18 @@ private struct AutoQRPanel: View {
                                 .frame(width: 220, height: 50).background(.white, in: Capsule())
                         }
                     }
-                    TimelineView(.periodic(from: .now, by: 1)) { ctx in
+                    TimelineView(.periodic(from: .now, by: 1)) { ctx in   // 0:00 hands over to "checking" at the next poll
                         HStack(spacing: 8) {
                             Circle().fill(Theme.up).frame(width: 8, height: 8)
                             Text("Waiting for your payment · \(QRCountdown(expiresAt: qr.expiresAt).remaining(at: ctx.date))").monospacedDigit()
                         }.font(.open(15)).foregroundStyle(.white.opacity(0.8))
                     }
+                case .checking:
+                    HStack(spacing: 10) {
+                        ProgressView().tint(.white)
+                        Text("Checking for your payment…").font(.open(15)).foregroundStyle(.white.opacity(0.85))
+                    }
+                    Text("If you paid, it will show here in a moment.").font(.open(13.5)).foregroundStyle(.white.opacity(0.6))
                 case .expired:
                     Text("This QR expired. Get a new one to pay.").font(.open(15)).foregroundStyle(.white.opacity(0.85))
                     again("New QR")
@@ -225,15 +231,18 @@ private struct AutoQRPanel: View {
             }
             qr = q
             while !Task.isCancelled {
-                let state = try? await api.paymentState(q.id)
+                var state: PaymentState?
+                do { state = try await api.paymentState(q.id) }
+                catch APIError.signedOut { session.handle(APIError.signedOut); return }
+                catch is CancellationError { return }
+                catch {}
                 phase = PayPhase.of(state, expiresAt: q.expiresAt, now: .now)
-                switch phase {
-                case let .paid(endsAt):
+                if case let .paid(endsAt) = phase {
                     if case .deposit = order { finished(.deposited) } else { finished(.active(endsAt)) }
                     return
-                case .expired, .rejected: return
-                case .waiting: try await Task.sleep(for: .seconds(3))
                 }
+                guard phase.keepsPolling else { return }
+                try await Task.sleep(for: .seconds(3))
             }
         } catch is CancellationError {
         } catch { session.handle(error); self.error = Copy.error(error) }
