@@ -42,12 +42,17 @@ struct PayView: View {
                         if method != .bank || auto == nil { ManualSheet(order: order, method: method, finished: finish) }
                     }
                 }
-                .background(method == .bank && auto != nil ? Color(hex: 0x0d0f12) : Theme.bg)
                 .scrollBounceBehavior(.basedOnSize)
+                .background {
+                    VStack(spacing: 0) {
+                        Color(hex: 0x0d0f12)
+                        method == .bank && auto != nil ? Color(hex: 0x0d0f12) : Theme.bg
+                    }.ignoresSafeArea()
+                }
             }
         }
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Color(hex: 0x0d0f12), for: .navigationBar)
+        .toolbarBackground(.hidden, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .onAppear { if !methods.contains(method), let first = methods.first { method = first } }
     }
