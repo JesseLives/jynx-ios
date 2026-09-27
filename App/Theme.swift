@@ -110,11 +110,25 @@ struct CardGroup<Content: View>: View {
 
 struct IconTile: View {
     let image: Image
-    var size: CGFloat = 17
+    var brand: String? = nil
     init(symbol: String) { image = Image(systemName: symbol) }
-    init(brand: String) { image = Image("brand-\(brand)"); size = 18 }
+    init(brand: String) { image = Image("brand-\(brand)"); self.brand = brand }
     var body: some View {
-        RoundedRectangle(cornerRadius: 12).fill(Theme.primarySoft).frame(width: 40, height: 40)
-            .overlay(image.resizable().scaledToFit().frame(width: size, height: size).fontWeight(.medium).foregroundStyle(Theme.primary))
+        if let brand {
+            image.resizable().scaledToFit().frame(width: 30, height: 30).foregroundStyle(Self.fill(brand)).frame(width: 40, height: 40)
+        } else {
+            RoundedRectangle(cornerRadius: 12).fill(Theme.primarySoft).frame(width: 40, height: 40)
+                .overlay(image.resizable().scaledToFit().frame(width: 17, height: 17).fontWeight(.medium).foregroundStyle(Theme.primary))
+        }
+    }
+    private static func fill(_ brand: String) -> AnyShapeStyle {
+        switch brand {
+        case "telegram": AnyShapeStyle(Color(hex: 0x26A5E4))
+        case "youtube": AnyShapeStyle(Color(hex: 0xFF0000))
+        case "facebook": AnyShapeStyle(Color(hex: 0x0866FF))
+        case "instagram": AnyShapeStyle(LinearGradient(colors: [Color(hex: 0xFEDA75), Color(hex: 0xFA7E1E), Color(hex: 0xD62976), Color(hex: 0x4F5BD5)],
+                                                       startPoint: .bottomLeading, endPoint: .topTrailing))
+        default: AnyShapeStyle(Theme.fg)
+        }
     }
 }

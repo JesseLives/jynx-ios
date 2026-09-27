@@ -35,12 +35,9 @@ struct CommunityView: View {
     }
 
     @ViewBuilder private func sections(_ c: Community) -> some View {
-        header("FAQ")
-        CardGroup {
-            ForEach(Array(c.faq.enumerated()), id: \.element.id) { i, f in
-                if i > 0 { Divider().padding(.leading, 14) }
-                question(f)
-            }
+        if let channel = c.channelURL {
+            header("Our Channel")
+            CardGroup { LinkRow(url: channel, tile: IconTile(brand: "telegram"), title: "Jynx Results", subtitle: "Every result we post, on Telegram") }
         }
 
         header("Contact us")
@@ -60,9 +57,12 @@ struct CommunityView: View {
             }
         }
 
-        if let channel = c.channelURL {
-            header("Our Channel")
-            CardGroup { LinkRow(url: channel, tile: IconTile(brand: "telegram"), title: "Jynx Results", subtitle: "Every result we post, on Telegram") }
+        header("FAQ")
+        CardGroup {
+            ForEach(Array(c.faq.enumerated()), id: \.element.id) { i, f in
+                if i > 0 { Divider().padding(.leading, 14) }
+                question(f)
+            }
         }
     }
 
