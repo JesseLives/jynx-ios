@@ -13,13 +13,18 @@ public enum APIError: Error, Equatable, Sendable {
 }
 
 public enum JSONValue: Encodable, Sendable, ExpressibleByStringLiteral, ExpressibleByIntegerLiteral, ExpressibleByBooleanLiteral {
-    case string(String), int(Int), bool(Bool)
+    case string(String), int(Int), bool(Bool), double(Double)
     public init(stringLiteral v: String) { self = .string(v) }
     public init(integerLiteral v: Int) { self = .int(v) }
     public init(booleanLiteral v: Bool) { self = .bool(v) }
     public func encode(to encoder: Encoder) throws {
         var c = encoder.singleValueContainer()
-        switch self { case .string(let v): try c.encode(v); case .int(let v): try c.encode(v); case .bool(let v): try c.encode(v) }
+        switch self {
+        case .string(let v): try c.encode(v)
+        case .int(let v): try c.encode(v)
+        case .bool(let v): try c.encode(v)
+        case .double(let v): try c.encode(v)
+        }
     }
 }
 
@@ -97,6 +102,19 @@ public struct API: Sendable {
         r.httpBody = Multipart.body(fields: fields, file: file, boundary: boundary)
         return (try await perform(r) as Created).payment.id
     }
+
+    // MARK: Copier
+
+    public func copier() async throws -> CopierState { try await call("GET", "/api/copier") }
+    public func connectMT5(login: String, password: String, server: String) async throws {
+        let _: Nothing = try await call("POST", "/api/copier", ["action": "connect", "login": .string(login),
+                                                                "password": .string(password), "server": .string(server)])
+    }
+    public func copierSettings(mode: CopierAccount.Mode, fixedLot: Double, riskPct: Double, maxLot: Double, enabled: Bool) async throws {
+        let _: Nothing = try await call("POST", "/api/copier", ["action": "settings", "mode": .string(mode.rawValue), "fixedLot": .double(fixedLot),
+                                                                "riskPct": .double(riskPct), "maxLot": .double(maxLot), "enabled": .bool(enabled)])
+    }
+    public func disconnectMT5() async throws { let _: Nothing = try await call("DELETE", "/api/copier") }
 
     public func mediaURL(messageId: String) -> URL { base.appending(path: "api/media/\(messageId)") }
 

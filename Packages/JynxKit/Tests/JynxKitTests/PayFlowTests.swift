@@ -64,7 +64,8 @@ private func state(_ s: PaymentStatus, _ reason: String? = nil, ends: Date? = ni
     let id = try await api(t).payManually(fields: [("productId", "p1"), ("months", "1"), ("method", "usdt"), ("reference", "tx")],
                                           receipt: Data([0xff, 0xd8, 0xff]))
     let r = t.seen[0]
-    #expect(id == "7d7d3271-e185-4014-bac7-690d4da7f5ab" && r.httpMethod == "POST" && r.url?.path == "/api/payments")
+    let want = try #require((try JSONSerialization.jsonObject(with: fixture("payment-created")) as? [String: Any])?["payment"] as? [String: Any])["id"] as? String
+    #expect(id == want && r.httpMethod == "POST" && r.url?.path == "/api/payments")
     t.body = try fixture("deposit-created")
     #expect(try await api(t).payManually(fields: [("kind", "deposit")], receipt: nil).isEmpty == false)
     #expect(r.value(forHTTPHeaderField: "Content-Type")?.hasPrefix("multipart/form-data; boundary=") == true)

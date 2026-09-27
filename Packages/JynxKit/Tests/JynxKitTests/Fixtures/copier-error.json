@@ -1,0 +1,16 @@
+{
+  "ok": true,
+  "hasPass": true,
+  "account": {
+    "login": "5012345",
+    "server": "Exness-MT5Trial8",
+    "status": "error",
+    "lastError": "Invalid account credentials",
+    "mode": "fixed",
+    "fixedLot": 0.01,
+    "riskPct": 1,
+    "maxLot": 1,
+    "enabled": false
+  },
+  "copies": []
+}

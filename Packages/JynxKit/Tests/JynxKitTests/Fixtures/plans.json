@@ -2,10 +2,10 @@
   "ok": true,
   "products": [
     {
-      "id": "88e8f659-4c49-447c-b20f-45b7fc9b47f6",
+      "id": "eeb496d4-d2b1-432f-ba6f-c5d53ab05571",
       "leaderId": "00000000-0000-0000-0000-000000000001",
       "kind": "channel",
-      "name": "P-da2vc",
+      "name": "P-bepp1",
       "description": "",
       "active": true,
       "prices": {
@@ -16,10 +16,10 @@
       }
     },
     {
-      "id": "7d49ccdf-eb57-4242-8472-77a47dd497ef",
+      "id": "98e8473f-9ff8-413c-8bf1-fe04376d5ca9",
       "leaderId": "00000000-0000-0000-0000-000000000001",
       "kind": "copier",
-      "name": "P-7hi2y",
+      "name": "P-60c8x",
       "description": "",
       "active": true,
       "prices": {

@@ -2,72 +2,72 @@
   "ok": true,
   "messages": [
     {
-      "id": "30227",
-      "roomId": "31873c79-a5b9-4306-9b3f-8b4c0ed939bf",
+      "id": "30235",
+      "roomId": "74d3902c-a9fc-4ac1-baae-7d40b3814efe",
       "kind": "signal_update",
       "body": "Closed at 1.083 +20 pips, result +20 pips",
       "hasMedia": false,
-      "signalId": "e36466a9-b76c-4590-8841-38ba738698f6",
-      "createdAt": "2026-09-27T05:32:12.877Z",
+      "signalId": "a4e6adb8-f286-4ca0-bd35-4966f3044e37",
+      "createdAt": "2026-09-27T06:07:32.248Z",
       "author": {
-        "id": "939fb81e-034b-4f0e-aa91-4aa873fae764",
-        "displayName": "939fb81e",
+        "id": "485d9615-f122-44d0-9022-1159ab7cf4ff",
+        "displayName": "485d9615",
         "staff": true
       }
     },
     {
-      "id": "30226",
-      "roomId": "31873c79-a5b9-4306-9b3f-8b4c0ed939bf",
+      "id": "30234",
+      "roomId": "74d3902c-a9fc-4ac1-baae-7d40b3814efe",
       "kind": "signal",
       "body": "SELL EURUSD @ 1.085 SL 1.088 TP 1.082",
       "hasMedia": false,
-      "signalId": "e36466a9-b76c-4590-8841-38ba738698f6",
-      "createdAt": "2026-09-27T05:32:12.867Z",
+      "signalId": "a4e6adb8-f286-4ca0-bd35-4966f3044e37",
+      "createdAt": "2026-09-27T06:07:32.239Z",
       "author": {
-        "id": "939fb81e-034b-4f0e-aa91-4aa873fae764",
-        "displayName": "939fb81e",
+        "id": "485d9615-f122-44d0-9022-1159ab7cf4ff",
+        "displayName": "485d9615",
         "staff": true
       }
     },
     {
-      "id": "30225",
-      "roomId": "31873c79-a5b9-4306-9b3f-8b4c0ed939bf",
+      "id": "30233",
+      "roomId": "74d3902c-a9fc-4ac1-baae-7d40b3814efe",
       "kind": "signal_update",
       "body": "TP1 hit +150 pips, closed 50%",
       "hasMedia": false,
-      "signalId": "5248a8c0-b2e1-493b-a15b-8348c432d797",
-      "createdAt": "2026-09-27T05:32:12.815Z",
+      "signalId": "2af12123-b227-4e4a-b021-257a444a68f9",
+      "createdAt": "2026-09-27T06:07:32.212Z",
       "author": {
-        "id": "939fb81e-034b-4f0e-aa91-4aa873fae764",
-        "displayName": "939fb81e",
+        "id": "485d9615-f122-44d0-9022-1159ab7cf4ff",
+        "displayName": "485d9615",
         "staff": true
       }
     },
     {
-      "id": "30224",
-      "roomId": "31873c79-a5b9-4306-9b3f-8b4c0ed939bf",
+      "id": "30232",
+      "roomId": "74d3902c-a9fc-4ac1-baae-7d40b3814efe",
       "kind": "signal",
       "body": "BUY XAUUSD @ 2350 SL 2340 TP 2365/2380",
       "hasMedia": false,
-      "signalId": "5248a8c0-b2e1-493b-a15b-8348c432d797",
-      "createdAt": "2026-09-27T05:32:12.775Z",
+      "signalId": "2af12123-b227-4e4a-b021-257a444a68f9",
+      "createdAt": "2026-09-27T06:07:32.152Z",
       "author": {
-        "id": "939fb81e-034b-4f0e-aa91-4aa873fae764",
-        "displayName": "939fb81e",
+        "id": "485d9615-f122-44d0-9022-1159ab7cf4ff",
+        "displayName": "485d9615",
         "staff": true
       }
     },
     {
-      "id": "30223",
-      "roomId": "31873c79-a5b9-4306-9b3f-8b4c0ed939bf",
+      "id": "30231",
+      "roomId": "74d3902c-a9fc-4ac1-baae-7d40b3814efe",
       "kind": "text",
       "body": "Morning. Gold looks heavy.",
       "hasMedia": false,
       "signalId": null,
-      "createdAt": "2026-09-27T05:32:12.767Z",
+      "createdAt": "2026-09-27T06:07:32.142Z",
       "author": {
-        "id": "939fb81e-034b-4f0e-aa91-4aa873fae764",
-        "displayName": "939fb81e",
+        "id": "485d9615-f122-44d0-9022-1159ab7cf4ff",
+        "displayName": "485d9615",
         "staff": true
       }
     }

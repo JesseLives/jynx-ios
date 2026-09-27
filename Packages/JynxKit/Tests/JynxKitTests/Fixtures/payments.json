@@ -2,12 +2,12 @@
   "ok": true,
   "payments": [
     {
-      "id": "9102fae8-16c3-4b67-a4d6-3d7ea84d18cc",
+      "id": "4229f26d-d617-43bd-949d-ac1fb3ed865d",
       "kind": "plan",
-      "userId": "9afc8427-df3f-4506-ae2b-6d79625537db",
-      "email": "9afc8427@test.local",
-      "productId": "88e8f659-4c49-447c-b20f-45b7fc9b47f6",
-      "productName": "P-da2vc",
+      "userId": "c06de39a-14d1-476d-b8a6-d88aa35aec26",
+      "email": "c06de39a@test.local",
+      "productId": "eeb496d4-d2b1-432f-ba6f-c5d53ab05571",
+      "productName": "P-bepp1",
       "months": 1,
       "amountCents": 11499,
       "method": "usdt",
@@ -16,15 +16,15 @@
       "auto": false,
       "status": "rejected",
       "rejectReason": "No USDT arrived for that transaction ID.",
-      "createdAt": "2026-09-27T05:32:15.540Z"
+      "createdAt": "2026-09-27T06:07:35.012Z"
     },
     {
-      "id": "3c0e7e7d-f3b6-4e50-a282-1fcd1a76acea",
+      "id": "c4b3b147-1b9d-42f6-8ee7-a1691d95dfd7",
       "kind": "plan",
-      "userId": "9afc8427-df3f-4506-ae2b-6d79625537db",
-      "email": "9afc8427@test.local",
-      "productId": "88e8f659-4c49-447c-b20f-45b7fc9b47f6",
-      "productName": "P-da2vc",
+      "userId": "c06de39a-14d1-476d-b8a6-d88aa35aec26",
+      "email": "c06de39a@test.local",
+      "productId": "eeb496d4-d2b1-432f-ba6f-c5d53ab05571",
+      "productName": "P-bepp1",
       "months": 3,
       "amountCents": 29999,
       "method": "aba",
@@ -33,13 +33,13 @@
       "auto": false,
       "status": "pending",
       "rejectReason": null,
-      "createdAt": "2026-09-27T05:32:15.536Z"
+      "createdAt": "2026-09-27T06:07:35.006Z"
     },
     {
-      "id": "74cbb157-e9f6-47f2-b641-bd1f8cc406ee",
+      "id": "31554a77-f388-4f3c-af80-376f65eeda4b",
       "kind": "deposit",
-      "userId": "9afc8427-df3f-4506-ae2b-6d79625537db",
-      "email": "9afc8427@test.local",
+      "userId": "c06de39a-14d1-476d-b8a6-d88aa35aec26",
+      "email": "c06de39a@test.local",
       "productId": null,
       "productName": null,
       "months": null,
@@ -50,7 +50,7 @@
       "auto": false,
       "status": "approved",
       "rejectReason": null,
-      "createdAt": "2026-09-27T05:32:15.300Z"
+      "createdAt": "2026-09-27T06:07:34.717Z"
     }
   ]
 }

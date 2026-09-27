@@ -2,7 +2,7 @@
   "ok": true,
   "signals": [
     {
-      "id": "1ba8ccb6-677a-4160-86ae-110c01a7f103",
+      "id": "387e8008-5eb6-458d-abfc-04cb68c90967",
       "side": "sell",
       "entry": 3700,
       "sl": 3712,
@@ -12,8 +12,8 @@
         3680
       ],
       "tpHits": [],
-      "createdAt": 1790487134.068,
-      "room": "P-gurd8"
+      "createdAt": 1790489253.494,
+      "room": "P-ozgqf"
     }
   ]
 }

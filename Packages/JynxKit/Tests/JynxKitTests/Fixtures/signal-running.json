@@ -1,8 +1,8 @@
 {
   "ok": true,
   "signal": {
-    "id": "5248a8c0-b2e1-493b-a15b-8348c432d797",
-    "roomId": "31873c79-a5b9-4306-9b3f-8b4c0ed939bf",
+    "id": "2af12123-b227-4e4a-b021-257a444a68f9",
+    "roomId": "74d3902c-a9fc-4ac1-baae-7d40b3814efe",
     "symbol": "XAUUSD",
     "side": "buy",
     "market": false,
@@ -22,7 +22,7 @@
     "slMovedTo": null,
     "realizedPips": 75,
     "resultPips": null,
-    "createdAt": "2026-09-27T05:32:12.775Z",
+    "createdAt": "2026-09-27T06:07:32.152Z",
     "closedAt": null,
     "updates": [
       {
@@ -31,7 +31,7 @@
         "fraction": "0.5",
         "tp": 1,
         "pips": 150,
-        "createdAt": "2026-09-27T05:32:12.815Z"
+        "createdAt": "2026-09-27T06:07:32.212Z"
       }
     ]
   }

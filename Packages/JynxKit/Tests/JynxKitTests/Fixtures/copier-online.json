@@ -1,0 +1,37 @@
+{
+  "ok": true,
+  "hasPass": true,
+  "account": {
+    "login": "5012345",
+    "server": "Exness-MT5Trial8",
+    "status": "online",
+    "lastError": null,
+    "mode": "risk",
+    "fixedLot": 0.1,
+    "riskPct": 1.5,
+    "maxLot": 1,
+    "enabled": true
+  },
+  "copies": [
+    {
+      "id": "a4a8f257-5a5b-461b-be67-e75ff196f4bb",
+      "symbol": "XAUUSD",
+      "side": "sell",
+      "status": "skipped",
+      "reason": "price_moved",
+      "volume": null,
+      "openPrice": null,
+      "createdAt": "2026-09-27T06:07:36.708Z"
+    },
+    {
+      "id": "ffdef826-e79a-465e-8f20-6ef082e18a08",
+      "symbol": "XAUUSD",
+      "side": "buy",
+      "status": "opened",
+      "reason": null,
+      "volume": 0.1,
+      "openPrice": null,
+      "createdAt": "2026-09-27T06:07:36.686Z"
+    }
+  ]
+}

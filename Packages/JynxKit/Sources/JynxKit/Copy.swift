@@ -22,6 +22,10 @@ public enum Copy {
         "no_proof": "Add a receipt screenshot or a transaction reference.",
         "too_many_pending": "You already have 5 payments waiting to be checked.",
         "not_pending": "That payment was already decided.",
+        "no_copier_pass": "You need an active Copier Pass to connect MT5.",
+        "already_connected": "An MT5 account is already connected. Disconnect it first.",
+        "copier_unavailable": "The copier is not available right now.",
+        "not_connected": "No MT5 account is connected.",
         "qr_unavailable": "Payment by QR is not available right now. Try again in a minute, or pay with USDT.",
     ]
 
