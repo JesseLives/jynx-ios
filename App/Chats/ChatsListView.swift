@@ -17,8 +17,8 @@ struct ChatsListView: View {
     var body: some View {
         NavigationStack(path: $path) {
             List {
-                SearchPill(text: $query)
-                    .listRowSeparator(.hidden).listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 8, trailing: 16))
+                VStack(spacing: 14) { PageTitle(text: "Chats"); SearchPill(text: $query) }
+                    .listRowSeparator(.hidden).listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 8, trailing: 16))
                 if rooms != nil {
                     ForEach(shown) { room in
                         Button { if !room.locked { path.append(room.id) } } label: { RoomRow(room: room) }
@@ -41,7 +41,7 @@ struct ChatsListView: View {
             }
             .listStyle(.plain).scrollContentBackground(.hidden).background(Theme.bg)
             .safeAreaInset(edge: .top, spacing: 0) { ReconnectingLine() }
-            .navigationTitle("Chats").navigationBarTitleDisplayMode(.large)
+            .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: String.self) { id in
                 if let room = rooms?.first(where: { $0.id == id }) { ChannelView(room: room) }
             }

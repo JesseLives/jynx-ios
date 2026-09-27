@@ -48,7 +48,7 @@ struct PlansView: View {
     private var owned: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("Plans").font(.open(32, .heavy)).foregroundStyle(Theme.fg)
+                PageTitle(text: "Plans")
                 let subs = session.me?.subscriptions ?? []
                 if subs.isEmpty { Text("No active plan.").font(.open(15)).foregroundStyle(Theme.muted) }
                 ForEach(subs, id: \.productId) { s in
@@ -63,7 +63,7 @@ struct PlansView: View {
                     .padding(16).background(Theme.card, in: RoundedRectangle(cornerRadius: 22))
                     .overlay(RoundedRectangle(cornerRadius: 22).stroke(Theme.borderSoft))
                 }
-            }.padding(.horizontal, 16).padding(.top, 20)
+            }.padding(.horizontal, 16)
         }
     }
 
@@ -74,10 +74,7 @@ struct PlansView: View {
         let chosen = months.flatMap { lengths.contains($0) ? $0 : nil } ?? lengths.first
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Plans").font(.open(32, .heavy)).foregroundStyle(Theme.fg)
-                    Text("Choose the plan that fits your needs.").font(.open(15)).foregroundStyle(Theme.muted)
-                }
+                PageTitle(text: "Plans", subtitle: "Choose the plan that fits your needs.")
                 if plans.products.contains(where: { $0.kind == .copier }) {
                     Segmented(options: [(ProductKind.channel, "Channels"), (.copier, "Copier Pass")], selection: $kind)
                 }
@@ -104,7 +101,7 @@ struct PlansView: View {
                     Text("Plans are managed on the website.").font(.open(15)).foregroundStyle(Theme.muted)
                 }
             }
-            .padding(.horizontal, 16).padding(.top, 20).padding(.bottom, 24)
+            .padding(.horizontal, 16).padding(.bottom, 24)
         }
         .safeAreaInset(edge: .bottom) {
             if Features.sells, let product, let chosen, let cents = product.prices[chosen] {

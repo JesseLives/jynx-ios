@@ -23,7 +23,7 @@ struct WalletView: View {
                 } else { ProgressView().padding(.top, 80).frame(maxWidth: .infinity) }
             }
             .background(Theme.bg)
-            .navigationTitle("Wallet").navigationBarTitleDisplayMode(.large)
+            .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: Route.self) { r in
                 switch r {
                 case .deposit: DepositView(minCents: wallet?.minDepositCents ?? 500, payment: plans?.payment)
@@ -50,6 +50,7 @@ struct WalletView: View {
 
     private func content(_ w: WalletOverview) -> some View {
         VStack(alignment: .leading, spacing: 24) {
+            PageTitle(text: "Wallet")
             WalletCard(wallet: w)
             HStack {
                 if Features.sells { action("Deposit", "arrow.down.to.line", filled: true) { path.append(.deposit) } }

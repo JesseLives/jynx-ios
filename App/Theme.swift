@@ -57,6 +57,19 @@ struct RoomAvatar: View {
     }
 }
 
+struct PageTitle: View {
+    let text: String
+    var subtitle: String? = nil
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(text).font(.open(32, .heavy)).foregroundStyle(Theme.fg)
+            if let subtitle { Text(subtitle).font(.open(15)).foregroundStyle(Theme.muted) }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.top, 20)
+    }
+}
+
 struct VipBadge: View {
     var body: some View {
         Text("VIP").font(.open(9.5, .heavy)).tracking(0.3).foregroundStyle(Theme.primary)
