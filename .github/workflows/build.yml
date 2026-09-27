@@ -1,0 +1,31 @@
+name: build
+on:
+  push: { branches: [main] }
+  workflow_dispatch: {}
+jobs:
+  ipa:
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Kit tests
+        run: cd Packages/JynxKit && swift test
+      - name: Generate project
+        run: brew install xcodegen && xcodegen generate
+      - name: Archive (unsigned)
+        run: |
+          set -o pipefail
+          xcodebuild -project Jynx.xcodeproj -scheme Jynx -configuration Release \
+            -destination 'generic/platform=iOS' -archivePath build/Jynx.xcarchive \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }} \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" archive 2>&1 | tee build-log.txt | grep -E "error:|warning: .*Swift|ARCHIVE" || true
+          test -d build/Jynx.xcarchive/Products/Applications/Jynx.app
+      - name: Package ipa
+        run: |
+          mkdir -p build/Payload && cp -R build/Jynx.xcarchive/Products/Applications/Jynx.app build/Payload/
+          cd build && zip -qry Jynx.ipa Payload && ls -la Jynx.ipa
+      - uses: actions/upload-artifact@v4
+        with: { name: Jynx-ipa, path: build/Jynx.ipa, retention-days: 30 }
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with: { name: build-log, path: build-log.txt, retention-days: 7 }

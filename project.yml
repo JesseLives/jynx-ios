@@ -1,0 +1,31 @@
+name: Jynx
+options:
+  bundleIdPrefix: xyz.justsal
+  deploymentTarget: { iOS: "17.0" }
+packages:
+  JynxKit: { path: Packages/JynxKit }
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    CODE_SIGNING_ALLOWED: "NO"
+    TARGETED_DEVICE_FAMILY: "1"
+    ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+targets:
+  Jynx:
+    type: application
+    platform: iOS
+    sources: [App]
+    dependencies: [{ package: JynxKit }]
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: Jynx
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        UILaunchScreen: {}
+        UIAppFonts: [OpenSans.ttf]
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        ITSAppUsesNonExemptEncryption: false
