@@ -69,14 +69,14 @@ struct PlansView: View {
     }
 
     @ViewBuilder private func shop(_ plans: PlansBody) -> some View {
-        let products = plans.products.filter { $0.kind == kind }
+        let products = plans.products.filter { $0.kind == (Features.copier ? kind : .channel) }
         let product = products.first { $0.id == picked } ?? products.first
         let lengths = product?.lengths ?? []
         let chosen = months.flatMap { lengths.contains($0) ? $0 : nil } ?? lengths.first
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
                 PageTitle(text: "Plans", subtitle: "Choose the plan that fits your needs.")
-                if plans.products.contains(where: { $0.kind == .copier }) {
+                if Features.copier && plans.products.contains(where: { $0.kind == .copier }) {
                     Segmented(options: [(ProductKind.channel, "Channels"), (.copier, "Copier Pass")], selection: $kind)
                 }
                 if !products.isEmpty {

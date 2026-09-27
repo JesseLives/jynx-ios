@@ -59,15 +59,23 @@ public struct AmountInput: Equatable, Sendable {
     }
 
     public static func parse(_ text: String, decimalSeparator: String) -> Int? {
-        let dec: Character = decimalSeparator == "," ? "," : "."
-        let grouping: Character = dec == "," ? "." : ","
-        let cleaned = text.filter { !$0.isWhitespace && $0 != grouping }
-        guard !cleaned.isEmpty, cleaned.allSatisfy({ $0.isNumber || $0 == dec }) else { return nil }
-        let parts = cleaned.split(separator: dec, omittingEmptySubsequences: false)
-        guard parts.count <= 2, let whole = Int(parts[0].isEmpty ? "0" : String(parts[0])) else { return nil }
-        let frac = parts.count == 2 ? String(parts[1]) : ""
-        guard frac.count <= 2 else { return nil }
-        return whole * 100 + (Int((frac + "00").prefix(2)) ?? 0)
+        let t = text.filter { !$0.isWhitespace }
+        guard !t.isEmpty, t.allSatisfy({ $0.isNumber || $0 == "," || $0 == "." }) else { return nil }
+        var whole = t, frac = ""
+        if let last = t.lastIndex(where: { $0 == "," || $0 == "." }) {
+            let after = String(t[t.index(after: last)...])
+            let mark = String(t[last])
+            if after.count <= 2 { whole = String(t[..<last]); frac = after }
+            else if after.count == 3 && mark == decimalSeparator {
+                if !t[..<last].contains(where: { $0 == "," || $0 == "." }) { return nil }
+            }
+        }
+        let digits = whole.filter(\.isNumber)
+        guard whole.allSatisfy({ $0.isNumber || $0 == "," || $0 == "." }), digits.count <= 12 else { return nil }
+        let groups = whole.split(whereSeparator: { $0 == "," || $0 == "." }).map(String.init)
+        if groups.count > 1, groups.dropFirst().contains(where: { $0.count != 3 }) { return nil }
+        guard let w = Int(digits.isEmpty ? "0" : digits) else { return nil }
+        return w * 100 + (Int((frac + "00").prefix(2)) ?? 0)
     }
 
     public mutating func add(cents more: Int) { set(min(Self.maxCents, (cents ?? 0) + more)) }

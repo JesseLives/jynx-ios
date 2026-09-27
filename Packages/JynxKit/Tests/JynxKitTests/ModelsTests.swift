@@ -44,3 +44,10 @@ import Testing
     #expect(page.canPost == .other)
     #expect(page.messages.first?.kind == .other)
 }
+
+@Test func subscriptionsCarryTheRenewalError() throws {
+    let me = try JSON.decoder().decode(Me.self, from: fixture("me"))
+    #expect(me.subscriptions.first?.renewError == nil)
+    let json = #"{"productId":"p","productName":"Gold","kind":"channel","endsAt":"2026-10-27T03:17:42.350Z","autoRenew":true,"renewMonths":1,"renewError":"Not enough in your wallet."}"#
+    #expect(try JSON.decoder().decode(Subscription.self, from: Data(json.utf8)).renewError == "Not enough in your wallet.")
+}

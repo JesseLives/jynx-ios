@@ -102,3 +102,21 @@ import Testing
     #expect(AmountInput.parse("", decimalSeparator: ".") == nil)
     #expect(AmountInput.parse("1.2.3", decimalSeparator: ".") == nil)
 }
+
+@Test func typedAmountsReadEitherMark() {
+    #expect(AmountInput.parse("0,05", decimalSeparator: ".") == 5)
+    #expect(AmountInput.parse("0.05", decimalSeparator: ",") == 5)
+    #expect(AmountInput.parse("1.5", decimalSeparator: ",") == 150)
+    #expect(AmountInput.parse("10,50", decimalSeparator: ".") == 1050)
+    #expect(AmountInput.parse("1,234", decimalSeparator: ".") == 123_400)
+    #expect(AmountInput.parse("1.234", decimalSeparator: ",") == 123_400)
+    #expect(AmountInput.parse("12,345,678.9", decimalSeparator: ".") == 1_234_567_890)
+    #expect(AmountInput.parse("10.555", decimalSeparator: ".") == nil)
+    #expect(AmountInput.parse("10,555", decimalSeparator: ",") == nil)
+    #expect(CopierInput.lot("0,05", separator: ".") == 0.05)
+}
+
+@Test func hugeTypedAmountsAreRefusedNotACrash() {
+    #expect(AmountInput.parse("99999999999999999", decimalSeparator: ".") == nil)
+    #expect(AmountInput.parse("999999999999", decimalSeparator: ".") == 99_999_999_999_900)
+}

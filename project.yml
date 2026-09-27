@@ -9,6 +9,7 @@ settings:
     SWIFT_VERSION: "6.0"
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
+    JYNX_COPIER: "NO"
     JYNX_SELLS: "YES"
     CODE_SIGNING_ALLOWED: "NO"
     TARGETED_DEVICE_FAMILY: "1"
@@ -31,3 +32,4 @@ targets:
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         ITSAppUsesNonExemptEncryption: false
         JynxSells: $(JYNX_SELLS)
+        JynxCopier: $(JYNX_COPIER)

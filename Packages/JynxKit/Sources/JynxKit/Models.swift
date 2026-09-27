@@ -29,6 +29,7 @@ public struct User: Decodable, Sendable, Equatable {
 }
 public struct Subscription: Decodable, Sendable, Equatable {
     public let productId: String, productName: String, endsAt: Date, autoRenew: Bool
+    public let renewError: String?
 }
 public struct WalletBalance: Decodable, Sendable, Equatable { public let balance: Int, withdrawable: Int }
 public struct Me: Decodable, Sendable, Equatable {

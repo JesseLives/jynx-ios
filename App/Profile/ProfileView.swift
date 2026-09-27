@@ -111,6 +111,11 @@ struct ProfileView: View {
                         Text("Auto-renew from wallet").font(.open(15, .semibold)).foregroundStyle(Theme.fg)
                     }
                     .tint(Theme.primary).padding(.horizontal, 14).padding(.vertical, 10)
+                    .disabled(renewing.contains(s.productId))   // one change at a time
+                    if let why = s.renewError, s.autoRenew {
+                        Text(why).font(.open(13.5)).foregroundStyle(Theme.down)
+                            .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 14).padding(.bottom, 10)
+                    }
                 }
             }
         }

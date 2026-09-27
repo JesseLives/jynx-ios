@@ -10,8 +10,10 @@ struct TabsView: View {
             ChatsListView().tabItem { Label("Chats", systemImage: "bubble.left.and.bubble.right") }
             ChartsView().tabItem { Label("Charts", systemImage: "chart.xyaxis.line") }
             PlansView().tabItem { Label("Plans", systemImage: "square.stack") }
-            Group { if session.me?.copierEnabled == false { SoonView(title: "Copier") } else { CopierView() } }
-                .tabItem { Label("Copier", systemImage: "power") }
+            if Features.copier {
+                Group { if session.me?.copierEnabled == false { SoonView(title: "Copier") } else { CopierView() } }
+                    .tabItem { Label("Copier", systemImage: "power") }
+            }
             ProfileView().tabItem { Label("Profile", systemImage: "person") }
         }
         .environment(live)
