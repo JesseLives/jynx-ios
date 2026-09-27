@@ -12,14 +12,14 @@ public struct LiveStream: Sendable {
         let (connect, sleep) = (connect, sleep)
         return AsyncStream { out in
             let task = Task {
-                var failures = 0, first = true
+                var failures = 0, first = true, failedBefore = false
                 while !Task.isCancelled {
                     do {
                         let lines = try await connect()
                         failures = 0
                         out.yield(.connected)
-                        if !first { out.yield(.everything) }
-                        first = false
+                        if !first || failedBefore { out.yield(.everything) }
+                        first = false; failedBefore = false
                         var parser = SSEParser()
                         for try await line in lines {
                             guard let e = parser.feed(line), e.event == "room" else { continue }
@@ -32,7 +32,8 @@ public struct LiveStream: Sendable {
                     } catch is CancellationError {
                         break
                     } catch {
-                        failures += 1
+                        out.yield(.disconnected)
+                        failures += 1; failedBefore = true
                         do { try await sleep(.seconds([1, 2, 4, 8, 15][min(failures - 1, 4)])) } catch { break }
                     }
                 }

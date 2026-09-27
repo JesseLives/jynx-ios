@@ -53,3 +53,31 @@ func stream(_ s: Script, slept: Sleeps? = nil) -> LiveStream {
     for await e in stream(s, slept: sleeps).events() { if e == .room("b") { break } }
     #expect(await sleeps.all.first == .seconds(1))
 }
+
+func failing(_ s: Script, after lines: [String]) -> LiveStream {
+    LiveStream(connect: {
+        _ = try await s.next()
+        return AsyncThrowingStream { c in for l in lines { c.yield(l) }; c.finish(throwing: URLError(.networkConnectionLost)) }
+    }, sleep: { _ in })
+}
+
+@Test func aDroppedConnectionReportsDisconnected() async {
+    let s = Script([["x"], ["x"]])
+    var got: [LiveEvent] = []
+    for await e in failing(s, after: ["event: room", "data: r1", ""]).events() { got.append(e); if got.count == 3 { break } }
+    #expect(got == [.connected, .room("r1"), .disconnected])
+}
+
+@Test func aFailedFirstConnectReportsDisconnected() async {
+    let s = Script([nil], errors: [APIError.offline])
+    var got: [LiveEvent] = []
+    for await e in stream(s).events() { got.append(e) }
+    #expect(got.first == .disconnected)
+}
+
+@Test func firstConnectAfterFailuresAsksForEverything() async {
+    let s = Script([nil, ["event: room", "data: r", ""]], errors: [APIError.offline])
+    var got: [LiveEvent] = []
+    for await e in stream(s).events() { got.append(e); if e == .room("r") { break } }
+    #expect(got == [.disconnected, .connected, .everything, .room("r")])
+}
