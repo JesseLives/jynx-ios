@@ -20,13 +20,15 @@ struct ChartsView: View {
     @State private var failed = false
     @State private var switching = false
     @State private var sniperReload: Task<Void, Never>?
+    @State private var lastTickAt: Double?
 
     var body: some View {
         let c = config ?? .standard
         let up = Color(hexString: c.upColor) ?? Theme.up, down = Color(hexString: c.downColor) ?? Theme.down
         VStack(spacing: 12) {
             ChartQuote(price: prices.last?.p ?? bars.last?.c, dayOpen: dayOpen, up: up, down: down,
-                       held: crosshair.flatMap { $0 < shownBars.count ? shownBars[$0] : nil }, timeframe: tf)
+                       held: crosshair.flatMap { $0 < shownBars.count ? shownBars[$0] : nil }, timeframe: tf,
+                       closed: marketClosed)
                 .padding(.top, 6)
             if c.toolbar { TimeframePill(selection: $tf).padding(.horizontal, 16) }
             strip(up: up, down: down).frame(minHeight: 24).animation(.easeOut(duration: 0.2), value: signals.isEmpty)
@@ -53,6 +55,11 @@ struct ChartsView: View {
         .onChange(of: prices.reconnects) { Task { await loadCandles() } }
         .onChange(of: phase) { if phase == .active { Task { await loadCandles() } } }
         .task(id: live.any) { await loadSignals() }
+    }
+
+    private var marketClosed: Bool {
+        let newest = max(prices.last?.t ?? 0, lastTickAt ?? 0)
+        return prices.connected && MarketClock.closed(lastTickAt: newest > 0 ? newest : nil)
     }
 
     private var shownBars: [Bar] { config?.style == .heikin ? heikinAshi(bars) : bars }
@@ -104,6 +111,7 @@ struct ChartsView: View {
             catch { session.handle(error); config = .standard }
         }
         await loadCandles(); await loadSignals()
+        lastTickAt = try? await session.api.lastPrice().at
     }
 
     private func switchTo(_ next: Timeframe) async {

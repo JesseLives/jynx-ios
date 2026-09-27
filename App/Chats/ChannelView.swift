@@ -102,6 +102,7 @@ struct ChannelView: View {
             await loadSignals(page.messages, refresh: loaded)
             let first = !loaded
             let grew = page.messages.first?.id != timeline.newestId
+            if !first && Alarm.shouldRing(shownNewest: timeline.newestId, page: page.messages) { AlarmPlayer.play() }
             timeline.applyLatest(page.messages); verdict = page.canPost; loaded = true; error = nil
             if first { proxy.scrollTo(bottom, anchor: .bottom); await Task.yield(); ready = true }
             else if grew && pinned { withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo(bottom, anchor: .bottom) } }

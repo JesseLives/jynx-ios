@@ -7,6 +7,7 @@ struct ChartQuote: View {
     let up: Color, down: Color
     let held: Bar?
     let timeframe: Timeframe
+    var closed = false
 
     var body: some View {
         VStack(spacing: 2) {
@@ -20,6 +21,8 @@ struct ChartQuote: View {
                             ? .dateTime.day().month(.abbreviated).year() : .dateTime.day().month(.abbreviated).hour().minute()))
                         Text("O \(money(b.o))  H \(money(b.h))  L \(money(b.l))  C \(money(b.c))").monospacedDigit()
                     }.foregroundStyle(Theme.muted)
+                } else if closed {
+                    Text("Market closed").foregroundStyle(Theme.muted)
                 } else if let price, let dayOpen, dayOpen > 0 {
                     let d = price - dayOpen, sign = d >= 0 ? "+" : "−"
                     HStack(spacing: 8) {

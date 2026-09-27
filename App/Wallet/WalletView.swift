@@ -7,12 +7,11 @@ struct WalletView: View {
     @State private var plans: PlansBody?
     @State private var error: String?
     @State private var withdrawing = false
-    @State private var path: [Route] = []
+    @State private var route: Route?
 
-    enum Route: Hashable { case deposit, invite }
+    enum Route: Hashable, Identifiable { case deposit, invite; var id: Self { self } }
 
     var body: some View {
-        NavigationStack(path: $path) {
             ScrollView {
                 if let wallet { content(wallet) }
                 else if let error {
@@ -23,8 +22,8 @@ struct WalletView: View {
                 } else { ProgressView().padding(.top, 80).frame(maxWidth: .infinity) }
             }
             .background(Theme.bg)
-            .toolbar(.hidden, for: .navigationBar)
-            .navigationDestination(for: Route.self) { r in
+            .navigationTitle("Wallet").navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(item: $route) { r in
                 switch r {
                 case .deposit: DepositView(minCents: wallet?.minDepositCents ?? 500, payment: plans?.payment)
                 case .invite: if let wallet { InviteView(wallet: wallet) { await load() } }
@@ -35,8 +34,7 @@ struct WalletView: View {
             }
             .task { await load() }
             .refreshable { await load() }
-            .onChange(of: path) { if path.isEmpty { Task { await load() } } }
-        }
+            .onChange(of: route) { if route == nil { Task { await load() } } }
     }
 
     private func load() async {
@@ -50,12 +48,11 @@ struct WalletView: View {
 
     private func content(_ w: WalletOverview) -> some View {
         VStack(alignment: .leading, spacing: 24) {
-            PageTitle(text: "Wallet")
             WalletCard(wallet: w)
             HStack {
-                if Features.sells { action("Deposit", "arrow.down.to.line", filled: true) { path.append(.deposit) } }
+                if Features.sells { action("Deposit", "arrow.down.to.line", filled: true) { route = .deposit } }
                 action("Withdraw", "arrow.up.to.line") { withdrawing = true }
-                if w.referrals { action("Invite", "square.and.arrow.up") { path.append(.invite) } }
+                if w.referrals { action("Invite", "square.and.arrow.up") { route = .invite } }
             }
             let days = grouped(w.activity)
             if days.isEmpty {
