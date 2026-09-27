@@ -46,7 +46,7 @@ struct PayView: View {
                 .background {
                     VStack(spacing: 0) {
                         Color(hex: 0x0d0f12)
-                        method == .bank && auto != nil ? Color(hex: 0x0d0f12) : Theme.bg
+                        lowerBackdrop
                     }.ignoresSafeArea()
                 }
             }
@@ -55,7 +55,15 @@ struct PayView: View {
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .onAppear { if !methods.contains(method), let first = methods.first { method = first } }
-        .sensoryFeedback(trigger: done) { _, new in new == nil ? nil : (new == .sent ? .impact(weight: .medium) : .success) }
+        .sensoryFeedback(trigger: done, feedback)
+    }
+
+    private static let panel = Color(hex: 0x0d0f12)
+    private var lowerBackdrop: Color { method == .bank && auto != nil ? Self.panel : Theme.bg }
+
+    private func feedback(_ old: Done?, _ new: Done?) -> SensoryFeedback? {
+        guard let new else { return nil }
+        return new == .sent ? .impact(weight: .medium) : .success
     }
 
     private var title: String {
