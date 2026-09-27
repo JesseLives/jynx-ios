@@ -66,6 +66,7 @@ public struct API: Sendable {
         return (try await call("GET", "/api/chart/candles", query: q) as CandlesBody).candles
     }
     public func indicator(_ tf: Timeframe) async throws -> Sniper { try await call("GET", "/api/chart/indicator", query: ["tf": tf.rawValue]) }
+    public func lastPrice() async throws -> LastPrice { try await call("GET", "/api/chart/price") }
     public func chartSignals() async throws -> [ChartSignal] { (try await call("GET", "/api/chart/signals") as ChartSignalsBody).signals }
     // MARK: Plans, payments, wallet
 

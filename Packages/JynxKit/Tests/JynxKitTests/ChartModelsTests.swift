@@ -41,3 +41,12 @@ import Testing
     #expect(SniperPanel.say("Trend up") == "Waiting")
     #expect(SniperPanel.say("Trend upward") == "Trend upward")
 }
+
+@Test func marketClosedWhenTheLastPriceIsOld() throws {
+    let last = try JSON.decoder().decode(LastPrice.self, from: fixture("chart-price"))
+    #expect(last.price == 4284.883 && last.at != nil)
+    let now = Date(timeIntervalSince1970: 2_000_000)
+    #expect(MarketClock.closed(lastTickAt: 2_000_000 - 601, now: now))
+    #expect(!MarketClock.closed(lastTickAt: 2_000_000 - 30, now: now))
+    #expect(!MarketClock.closed(lastTickAt: nil, now: now))   // nothing known: say nothing
+}

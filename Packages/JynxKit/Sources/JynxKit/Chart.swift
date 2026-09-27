@@ -83,3 +83,13 @@ public enum TargetProgress {
         }
     }
 }
+
+public struct LastPrice: Decodable, Sendable, Equatable { public let price: Double?, at: Double? }
+
+public enum MarketClock {
+    public static let quiet: TimeInterval = 600
+    public static func closed(lastTickAt: Double?, now: Date = .now) -> Bool {
+        guard let lastTickAt else { return false }
+        return now.timeIntervalSince1970 - lastTickAt > quiet
+    }
+}
