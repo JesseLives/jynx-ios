@@ -3,24 +3,35 @@ import UserNotifications
 
 @main
 struct SalesApp: App {
-    @UIApplicationDelegateAdaptor(AppDelegate.self) private var delegate
+    @StateObject private var runner: Runner
+    @Environment(\.scenePhase) private var phase
+
+    init() {
+        if ProcessInfo.processInfo.arguments.contains("-uitest") { Storage.wipe() }   // UI tests start from nothing
+        Sounds.install()
+        UNUserNotificationCenter.current().delegate = NotificationShower.shared
+        _runner = StateObject(wrappedValue: Runner())
+    }
 
     var body: some Scene {
         WindowGroup {
-            ContentView().preferredColorScheme(.dark)
+            ContentView()
+                .environmentObject(runner)
+                .preferredColorScheme(.dark)
+                .task { await runner.resume() }
+        }
+        .onChange(of: phase) { _, now in
+            if now == .active { runner.appeared() }
+            if now == .background { runner.saveNow() }
         }
     }
 }
 
-final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        Sounds.install()
-        UNUserNotificationCenter.current().delegate = self
-        return true
-    }
+final class NotificationShower: NSObject, UNUserNotificationCenterDelegate {
+    static let shared = NotificationShower()
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification,
                                 withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        completionHandler([.banner, .list, .sound])
+        completionHandler([.banner, .list, .sound, .badge])
     }
 }

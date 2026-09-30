@@ -1,55 +1,66 @@
 import AVFoundation
+import SalesKit
 import SwiftUI
 import UIKit
 
-private enum Palette {
-    static let card = Color(white: 0.11)
-    static let field = Color(white: 0.16)
-    static let line = Color.white.opacity(0.07)
-    static let muted = Color(white: 0.62)
-    static let blue = Color(red: 0.36, green: 0.66, blue: 1.0)
-    static let start = Color(red: 0.45, green: 0.72, blue: 1.0)
-}
-
 struct ContentView: View {
-    @State private var s = Settings.load()
-    @StateObject private var runner = Runner()
+    @EnvironmentObject private var runner: Runner
+    @State private var s = Storage.settings
+    @State private var setups = Storage.setups
     @State private var player: AVAudioPlayer?
+    @State private var naming = false
+    @State private var newName = ""
+    @State private var confirmReset = false
+    @State private var toast: String?
     @FocusState private var typing: Bool
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
-            ScrollView {
-                VStack(spacing: 16) {
-                    preview
-                    textCard
-                    saleCard
-                    whenCard
-                    if s.when == .tenMinutes {
-                        rateCard
-                        pacingCard
+        NavigationStack {
+            VStack(spacing: 0) {
+                header
+                ScrollView {
+                    VStack(spacing: 16) {
+                        todayCard
+                        if let toast {
+                            Text(toast).font(.subheadline.weight(.semibold)).foregroundStyle(Palette.green)
+                                .transition(.opacity).accessibilityIdentifier("toast")
+                        }
+                        preview
+                        settingsSections
+                            .disabled(runner.running)
+                            .opacity(runner.running ? 0.4 : 1)
+                        bottom
                     }
-                    soundCard
-                    startButton
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 40)
+                    .animation(.easeOut(duration: 0.2), value: runner.running)
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 40)
+                .scrollDismissesKeyboard(.interactively)
             }
-            .scrollDismissesKeyboard(.interactively)
+            .background(Color.black.ignoresSafeArea())
+            .foregroundStyle(.white)
+            .toolbar(.hidden, for: .navigationBar)
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") { typing = false }
+                }
+            }
         }
-        .background(Color.black.ignoresSafeArea())
-        .foregroundStyle(.white)
-        .onChange(of: s) { _, new in new.save() }
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("Done") { typing = false }
-            }
+        .onChange(of: s) { _, new in Storage.settings = new }
+        .alert("Save setup", isPresented: $naming) {
+            TextField("Name, e.g. Drop day", text: $newName)
+            Button("Save") { saveSetup() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Saves your text, products, timing and sound under a name.")
+        }
+        .confirmationDialog("Reset today's total to $0.00?", isPresented: $confirmReset, titleVisibility: .visible) {
+            Button("Reset", role: .destructive) { runner.resetToday() }
         }
     }
 
-    // MARK: - Header and preview
+    // MARK: - Header, today, preview
 
     private var header: some View {
         HStack(spacing: 4) {
@@ -64,37 +75,164 @@ struct ContentView: View {
         .padding(.vertical, 12)
     }
 
+    private var todayCard: some View {
+        let t = runner.today.shown(at: Date())
+        return VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text("TODAY").font(.system(size: 15, weight: .bold)).kerning(1.2).foregroundStyle(Palette.muted)
+                Spacer()
+                Menu {
+                    Button { runner.clearShown(); flash("Notifications and badge cleared") } label: { Label("Clear notifications and badge", systemImage: "bell.slash") }
+                    Button(role: .destructive) { confirmReset = true } label: { Label("Reset today's total", systemImage: "arrow.counterclockwise") }
+                } label: {
+                    Image(systemName: "ellipsis.circle").font(.system(size: 22)).foregroundStyle(Palette.muted).frame(width: 44, height: 44)
+                }
+                .accessibilityIdentifier("todayMenu")
+                .accessibilityLabel("More")
+            }
+            Text(money(t.cents))
+                .font(.system(size: 44, weight: .bold, design: .rounded))
+                .monospacedDigit()
+                .contentTransition(.numericText())
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+                .accessibilityIdentifier("todayTotal")
+            Text(t.orders == 1 ? "1 order" : "\(t.orders.formatted()) orders")
+                .font(.system(size: 17, weight: .medium))
+                .foregroundStyle(Palette.muted)
+                .accessibilityIdentifier("todayOrders")
+            if let session = runner.session {
+                ProgressView(value: Double(session.counted), total: Double(max(1, session.total)))
+                    .tint(Palette.green)
+                    .padding(.top, 8)
+                Text(status(session))
+                    .font(.subheadline)
+                    .foregroundStyle(Palette.muted)
+                    .accessibilityIdentifier("progressText")
+                BigButton(title: "Stop", color: Palette.stop, id: "stopButton") { runner.stop() }
+                    .padding(.top, 6)
+            }
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 22, style: .continuous).fill(Palette.card))
+        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(Palette.line, lineWidth: 1))
+        .animation(.snappy, value: runner.today)
+    }
+
+    private func status(_ session: Session) -> String {
+        let time = Date.FormatStyle(date: .omitted, time: .shortened)
+        if session.start > Date() {
+            let day = Calendar.current.isDateInToday(session.start) ? "" : " " + session.start.formatted(.dateTime.weekday(.abbreviated))
+            return "Starts\(day) at \(session.start.formatted(time)) · \(session.total.formatted()) to send"
+        }
+        let sent = "Sent \(session.delivered.formatted()) of \(session.total.formatted())"
+        return session.total == 1 ? sent : "\(sent) · ends \(session.end.formatted(time))"
+    }
+
     private var preview: some View {
-        let sale = Sale(order: 7481, items: 1, cents: Int((s.price * 100).rounded()))
+        let product = s.sellable[0]
+        let sale = Sale(order: 7481, product: product.shownName, items: 1, cents: product.priceCents)
         return HStack(spacing: 12) {
             Image("logo").resizable().scaledToFit().frame(width: 44, height: 44)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             VStack(alignment: .leading, spacing: 2) {
-                Text(fill(s.text.title, sale: sale, store: s.store, product: s.product)).font(.system(size: 16, weight: .semibold)).lineLimit(1)
-                Text(fill(s.text.body, sale: sale, store: s.store, product: s.product)).font(.system(size: 15)).foregroundStyle(Color(white: 0.85)).lineLimit(2)
+                HStack(alignment: .firstTextBaseline) {
+                    Text(fill(s.text.title, sale: sale, store: s.store)).font(.system(size: 16, weight: .semibold)).lineLimit(1)
+                    Spacer(minLength: 4)
+                    Text("now").font(.system(size: 13)).foregroundStyle(Color(white: 0.75))
+                }
+                Text(fill(s.text.body, sale: sale, store: s.store)).font(.system(size: 15)).foregroundStyle(Color(white: 0.88)).lineLimit(2)
             }
-            Spacer(minLength: 0)
         }
         .padding(14)
-        .background(RoundedRectangle(cornerRadius: 22, style: .continuous).fill(Color(white: 0.32)))
+        .background(RoundedRectangle(cornerRadius: 22, style: .continuous).fill(Color(white: 0.3)))
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("preview")
     }
 
-    // MARK: - Cards
+    // MARK: - Settings
+
+    @ViewBuilder private var settingsSections: some View {
+        if runner.running {
+            Text("Stop the session to change anything below.").font(.subheadline).foregroundStyle(Palette.muted)
+        }
+        setupsCard
+        textCard
+        productsCard
+        whenCard
+        if s.length != .now {
+            rateCard
+            pacingCard
+        }
+        soundCard
+        extrasCard
+    }
+
+    private var setupsCard: some View {
+        Card("Setups") {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(setups) { setup in
+                        Button {
+                            s = setup.settings
+                            flash("Loaded \(setup.name)")
+                        } label: {
+                            HStack(spacing: 6) {
+                                if setup.settings == s { Image(systemName: "checkmark").font(.system(size: 13, weight: .bold)) }
+                                Text(setup.name).lineLimit(1)
+                            }
+                            .font(.system(size: 16, weight: .semibold))
+                            .padding(.horizontal, 14).padding(.vertical, 10)
+                            .background(Capsule().fill(setup.settings == s ? Palette.blue.opacity(0.3) : Palette.field))
+                        }
+                        .buttonStyle(.plain)
+                        .contextMenu {
+                            Button { update(setup) } label: { Label("Update with current", systemImage: "square.and.arrow.down") }
+                            Button(role: .destructive) { delete(setup) } label: { Label("Delete", systemImage: "trash") }
+                        }
+                        .accessibilityIdentifier("setup-\(setup.name)")
+                    }
+                    Button {
+                        newName = ""
+                        naming = true
+                    } label: {
+                        Label("Save current", systemImage: "plus")
+                            .font(.system(size: 16, weight: .semibold))
+                            .padding(.horizontal, 14).padding(.vertical, 10)
+                            .background(Capsule().stroke(Palette.blue, lineWidth: 1.5))
+                            .foregroundStyle(Palette.blue)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("saveSetup")
+                }
+            }
+            Text(setups.isEmpty ? "Save what you've set up to switch back to it with one tap." : "Tap to load. Press and hold to update or delete.")
+                .font(.footnote).foregroundStyle(Palette.muted)
+        }
+    }
 
     private var textCard: some View {
         Card("Notification text") {
-            Segments(items: [TextMode.preset, .custom], label: { $0 == .preset ? "Presets" : "Custom" }, selected: s.textMode) { s.textMode = $0 }
+            Segments(items: [TextMode.preset, .custom], label: { $0 == .preset ? "Presets" : "Custom" },
+                     id: { $0 == .preset ? "textPresets" : "textCustom" }, selected: s.textMode) { s.textMode = $0 }
             if s.textMode == .preset {
                 Menu {
                     ForEach(Array(presets.enumerated()), id: \.offset) { i, p in
-                        Button("\(p.title)\n\(p.body)") { s.presetIndex = i }
+                        Button { s.presetIndex = i } label: {
+                            if i == min(max(0, s.presetIndex), presets.count - 1) {
+                                Label(p.title + " · " + p.body, systemImage: "checkmark")
+                            } else {
+                                Text(p.title + " · " + p.body)
+                            }
+                        }
                     }
                 } label: {
                     HStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Choose preset").font(.system(size: 14, weight: .semibold)).foregroundStyle(Palette.blue)
-                            Text(s.preset.title).font(.system(size: 17, weight: .semibold))
-                            Text(s.preset.body).font(.system(size: 16)).foregroundStyle(Palette.muted)
+                            Text(s.text.title).font(.system(size: 17, weight: .semibold))
+                            Text(s.text.body).font(.system(size: 16)).foregroundStyle(Palette.muted)
                         }
                         .multilineTextAlignment(.leading)
                         Spacer()
@@ -103,41 +241,99 @@ struct ContentView: View {
                     .foregroundStyle(.white)
                     .padding(14)
                     .background(RoundedRectangle(cornerRadius: 14).stroke(Palette.line, lineWidth: 1.5))
+                    .contentShape(Rectangle())
                 }
+                .accessibilityIdentifier("presetMenu")
             } else {
-                Field("Title", text: $s.customTitle).focused($typing)
-                Field("Message", text: $s.customBody).focused($typing)
-                Text("{order} {amount} {items} {store} {product} are filled in for each sale.")
+                Field(label: "Title", text: $s.custom.title).focused($typing)
+                Field(label: "Message", text: $s.custom.body).focused($typing)
+                Text("{order} {amount} {items} {product} {store} are filled in for each sale.")
                     .font(.footnote).foregroundStyle(Palette.muted)
             }
         }
     }
 
-    private var saleCard: some View {
-        Card("Sale") {
-            NumberRow(label: "Price", value: $s.price, decimals: true).focused($typing)
-            NumberRow(label: "Items per order, up to", value: Binding(get: { Double(s.maxItems) }, set: { s.maxItems = max(1, min(20, Int($0))) })).focused($typing)
-            Field("Store name", text: $s.store).focused($typing)
-            if s.text.body.contains("{product}") || s.text.title.contains("{product}") {
-                Field("Product", text: $s.product).focused($typing)
+    private var productsCard: some View {
+        Card("Products") {
+            ForEach($s.products) { $product in
+                HStack(spacing: 10) {
+                    TextField("Product name", text: $product.name)
+                        .font(.system(size: 17, weight: .semibold))
+                        .focused($typing)
+                        .accessibilityIdentifier("productName")
+                    PriceField(cents: $product.priceCents).focused($typing)
+                    if s.products.count > 1 {
+                        Button {
+                            typing = false
+                            let id = product.id
+                            s.products.removeAll { $0.id == id }
+                        } label: {
+                            Image(systemName: "minus.circle.fill").font(.system(size: 22)).foregroundStyle(Palette.stop)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Remove product")
+                        .accessibilityIdentifier("removeProduct")
+                    }
+                }
+                .padding(.horizontal, 14).padding(.vertical, 12)
+                .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Palette.field))
             }
+            if s.products.count < 20 {
+                Button {
+                    s.products.append(Product(name: "", priceCents: 2_500))
+                } label: {
+                    Label("Add product", systemImage: "plus.circle.fill").font(.system(size: 17, weight: .semibold)).foregroundStyle(Palette.blue)
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("addProduct")
+            }
+            if s.products.allSatisfy({ $0.priceCents == 0 }) {
+                Text("Every product is $0.00, so sales use $38.99 until you set a price.").font(.footnote).foregroundStyle(.orange)
+            }
+            Stepper(value: $s.maxItems, in: 1...10) {
+                Text(s.maxItems == 1 ? "1 item per order" : "Up to \(s.maxItems) items per order").font(.system(size: 17))
+            }
+            .padding(.horizontal, 14).padding(.vertical, 8)
+            .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Palette.field))
+            Field(label: "Store name", text: $s.store).focused($typing)
+            Text("Each order picks one product at random.").font(.footnote).foregroundStyle(Palette.muted)
         }
     }
 
     private var whenCard: some View {
         Card("When to send") {
-            Choice(title: "Single notification", note: "One-time ping right now", on: s.when == .single) { s.when = .single }
-            Choice(title: "Over 10 minutes", note: "Burst spread across 10 minutes", on: s.when == .tenMinutes) { s.when = .tenMinutes }
+            Segments(items: SessionLength.allCases, columns: 3, label: { $0.label }, id: { "length-\($0.rawValue)" }, selected: s.length) { s.length = $0 }
+            Toggle(isOn: Binding(get: { s.startLater }, set: { on in
+                s.startLater = on
+                if on && s.startAt < Date().addingTimeInterval(60) { s.startAt = nextRoundTime() }
+            })) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Start at a set time").font(.system(size: 17, weight: .semibold))
+                    Text("Leave the app open or in the background").font(.system(size: 14)).foregroundStyle(Palette.muted)
+                }
+            }
+            .tint(Palette.blue)
+            .accessibilityIdentifier("startLaterToggle")
+            if s.startLater {
+                DatePicker("Starts", selection: $s.startAt, in: Date()..., displayedComponents: [.date, .hourAndMinute])
+                    .font(.system(size: 17))
+                    .accessibilityIdentifier("startAtPicker")
+            }
         }
     }
 
     private var rateCard: some View {
         Card("Notifications per 10 seconds") {
-            NumberRow(label: "Amount", value: Binding(get: { Double(s.perTenSeconds) }, set: { s.perTenSeconds = max(1, min(Limits.maxPerTenSeconds, Int($0))) }))
-                .focused($typing)
+            WholeNumberRow(label: "Amount", value: $s.perTenSeconds, range: 1...Limits.maxPerTenSeconds, id: "rateField").focused($typing)
             Text("Up to 500 per 10 sec · 5,000 max per session").font(.subheadline).foregroundStyle(Palette.muted)
-            Text("\(sessionCount(perTenSeconds: s.perTenSeconds).formatted()) notifications over 10 minutes").font(.subheadline).foregroundStyle(Palette.muted)
+            Text(countLine).font(.subheadline).foregroundStyle(Palette.muted).accessibilityIdentifier("countLine")
         }
+    }
+
+    private var countLine: String {
+        let uncapped = Double(max(1, s.perTenSeconds)) * s.length.seconds / 10
+        let capped = uncapped > Double(Limits.maxPerSession)
+        return "\(s.count.formatted()) notifications \(s.length.span)" + (capped ? " (the 5,000 limit)" : "")
     }
 
     private var pacingCard: some View {
@@ -149,7 +345,7 @@ struct ContentView: View {
 
     private var soundCard: some View {
         Card("Sound") {
-            ForEach(NotificationSound.allCases) { sound in
+            ForEach(SoundChoice.allCases) { sound in
                 Button {
                     s.sound = sound
                     play(sound)
@@ -162,152 +358,100 @@ struct ContentView: View {
                     .contentShape(Rectangle())
                     .padding(.vertical, 8)
                 }
+                .buttonStyle(.plain)
                 .foregroundStyle(.white)
+                .accessibilityIdentifier("sound-\(sound.rawValue)")
             }
+            Text("Tap to hear it. Notifications play it even with the app closed; the ring/silent switch still applies.")
+                .font(.footnote).foregroundStyle(Palette.muted)
         }
     }
 
-    @ViewBuilder private var startButton: some View {
-        if runner.running {
-            VStack(spacing: 10) {
-                ProgressView(value: Double(runner.sent), total: Double(max(1, runner.total))).tint(Palette.start)
-                Text("Sent \(runner.sent.formatted()) of \(runner.total.formatted())").font(.subheadline).foregroundStyle(Palette.muted)
-                BigButton(title: "Stop", color: Color(red: 1, green: 0.27, blue: 0.3)) { runner.stop() }
+    private var extrasCard: some View {
+        Card("Extras") {
+            Toggle(isOn: $s.badge) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Badge on the app icon").font(.system(size: 17, weight: .semibold))
+                    Text("The red number counts up with each order").font(.system(size: 14)).foregroundStyle(Palette.muted)
+                }
             }
-        } else {
-            BigButton(title: "Start", color: Palette.start) {
+            .tint(Palette.blue)
+            Toggle(isOn: $s.liveActivity) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Live total on the lock screen").font(.system(size: 17, weight: .semibold))
+                    Text("Today's total and orders, updating as they come in").font(.system(size: 14)).foregroundStyle(Palette.muted)
+                }
+            }
+            .tint(Palette.blue)
+        }
+    }
+
+    // MARK: - Start
+
+    @ViewBuilder private var bottom: some View {
+        if !runner.running {
+            BigButton(title: s.startLater ? "Schedule" : "Start", color: Palette.start, id: "startButton") {
                 typing = false
                 Task { await runner.start(s) }
             }
         }
-        if let p = runner.problem { Text(p).font(.subheadline).foregroundStyle(.orange).multilineTextAlignment(.center) }
-        Button("Clear shown notifications") { runner.clearShown() }
-            .font(.subheadline).foregroundStyle(Palette.muted)
+        if let p = runner.problem {
+            VStack(spacing: 10) {
+                Text(p).font(.subheadline).foregroundStyle(.orange).multilineTextAlignment(.center)
+                if runner.notificationsOff {
+                    Button("Open Settings") {
+                        if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+                    }
+                    .font(.subheadline.weight(.semibold))
+                }
+            }
+            .accessibilityIdentifier("problem")
+        }
     }
 
     // MARK: - Actions
 
-    private func play(_ sound: NotificationSound) {
+    private func saveSetup() {
+        let name = newName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty else { return }
+        if let i = setups.firstIndex(where: { $0.name.caseInsensitiveCompare(name) == .orderedSame }) {
+            setups[i].settings = s
+        } else {
+            setups.append(Setup(name: name, settings: s))
+        }
+        Storage.setups = setups
+        flash("Saved \(name)")
+    }
+
+    private func update(_ setup: Setup) {
+        guard let i = setups.firstIndex(where: { $0.id == setup.id }) else { return }
+        setups[i].settings = s
+        Storage.setups = setups
+        flash("Updated \(setup.name)")
+    }
+
+    private func delete(_ setup: Setup) {
+        setups.removeAll { $0.id == setup.id }
+        Storage.setups = setups
+    }
+
+    private func flash(_ text: String) {
+        withAnimation { toast = text }
+        Task {
+            try? await Task.sleep(for: .seconds(2))
+            withAnimation { if toast == text { toast = nil } }
+        }
+    }
+
+    private func play(_ sound: SoundChoice) {
         guard let url = Sounds.url(sound) else { return }
-        try? AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
+        if !runner.running { try? AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers]) }
         player = try? AVAudioPlayer(contentsOf: url)
         player?.play()
     }
-}
 
-// MARK: - Pieces
-
-private struct Card<Content: View>: View {
-    let title: String
-    let content: Content
-    init(_ title: String, @ViewBuilder content: () -> Content) {
-        self.title = title
-        self.content = content()
-    }
-    var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text(title.uppercased()).font(.system(size: 15, weight: .bold)).kerning(1.2).foregroundStyle(Palette.muted)
-            content
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(18)
-        .background(RoundedRectangle(cornerRadius: 22, style: .continuous).fill(Palette.card))
-        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(Palette.line, lineWidth: 1))
-    }
-}
-
-private struct Segments<T: Hashable>: View {
-    let items: [T]
-    let label: (T) -> String
-    let selected: T
-    let pick: (T) -> Void
-    var body: some View {
-        HStack(spacing: 4) {
-            ForEach(items, id: \.self) { item in
-                Button { pick(item) } label: {
-                    Text(label(item))
-                        .font(.system(size: 17, weight: .semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 11)
-                        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(item == selected ? Color(white: 0.3) : .clear))
-                        .foregroundStyle(item == selected ? .white : Color(white: 0.75))
-                }
-            }
-        }
-        .padding(4)
-        .background(RoundedRectangle(cornerRadius: 15, style: .continuous).fill(Palette.field))
-    }
-}
-
-private struct Choice: View {
-    let title: String
-    let note: String
-    let on: Bool
-    let pick: () -> Void
-    var body: some View {
-        Button(action: pick) {
-            HStack {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(title).font(.system(size: 18, weight: .semibold))
-                    Text(note).font(.system(size: 15)).foregroundStyle(Palette.muted)
-                }
-                .multilineTextAlignment(.leading)
-                Spacer()
-                if on { Image(systemName: "checkmark.circle.fill").font(.system(size: 22)).foregroundStyle(.white, Palette.blue) }
-            }
-            .contentShape(Rectangle())
-            .padding(.vertical, 6)
-        }
-        .foregroundStyle(.white)
-    }
-}
-
-private struct Field: View {
-    let label: String
-    @Binding var text: String
-    init(_ label: String, text: Binding<String>) {
-        self.label = label
-        self._text = text
-    }
-    var body: some View {
-        HStack {
-            Text(label).foregroundStyle(Palette.muted)
-            TextField(label, text: $text).multilineTextAlignment(.trailing).font(.system(size: 17, weight: .semibold))
-        }
-        .padding(.horizontal, 16).padding(.vertical, 14)
-        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Palette.field))
-    }
-}
-
-private struct NumberRow: View {
-    let label: String
-    @Binding var value: Double
-    var decimals = false
-    var body: some View {
-        HStack {
-            Text(label).font(.system(size: 18)).foregroundStyle(Palette.muted)
-            TextField("0", value: $value, format: decimals ? .number.precision(.fractionLength(2)) : .number.precision(.fractionLength(0)))
-                .keyboardType(decimals ? .decimalPad : .numberPad)
-                .multilineTextAlignment(.trailing)
-                .font(.system(size: 22, weight: .bold))
-        }
-        .padding(.horizontal, 16).padding(.vertical, 12)
-        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Palette.field))
-    }
-}
-
-private struct BigButton: View {
-    let title: String
-    let color: Color
-    let action: () -> Void
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.system(size: 22, weight: .bold))
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 22)
-                .background(Capsule().fill(color))
-                .foregroundStyle(.white)
-        }
+    private func nextRoundTime() -> Date {
+        let t = Date().addingTimeInterval(3_600).timeIntervalSinceReferenceDate
+        return Date(timeIntervalSinceReferenceDate: (t / 300).rounded(.up) * 300)
     }
 }

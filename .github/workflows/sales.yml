@@ -7,12 +7,32 @@ on:
 jobs:
   ipa:
     runs-on: macos-26
-    timeout-minutes: 30
+    timeout-minutes: 45
     defaults: { run: { working-directory: Sales } }
     steps:
       - uses: actions/checkout@v4
+      - name: SalesKit tests
+        run: cd Packages/SalesKit && swift test
       - name: Generate project
         run: brew install xcodegen && xcodegen generate
+      - name: UI test in the simulator
+        run: |
+          set -o pipefail
+          UDID=$(xcrun simctl list devices available -j | python3 -c '
+          import json, sys
+          d = json.load(sys.stdin)["devices"]
+          ios = sorted((k for k in d if ".iOS-" in k), key=lambda k: [int(x) for x in k.split(".iOS-")[1].split("-")])
+          phones = [x for x in d[ios[-1]] if x["name"].startswith("iPhone") and "Pro" in x["name"] and "Max" not in x["name"]] or [x for x in d[ios[-1]] if x["name"].startswith("iPhone")]
+          print(phones[0]["udid"]); print(phones[0]["name"], ios[-1], file=sys.stderr)')
+          xcodebuild test -project Sales.xcodeproj -scheme Sales -destination "id=$UDID" -resultBundlePath build/ui.xcresult \
+            CODE_SIGNING_ALLOWED=NO 2>&1 | tee test-log.txt | grep -E "error:|Test Case|TEST (SUCCEEDED|FAILED)|XCTAssert" || true
+          grep -q "TEST SUCCEEDED" test-log.txt
+      - name: Screenshots
+        if: always()
+        run: xcrun xcresulttool export attachments --path build/ui.xcresult --output-path build/shots || true
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: sales-screenshots, path: Sales/build/shots, retention-days: 14, if-no-files-found: ignore }
       - name: Archive (unsigned)
         run: |
           set -o pipefail
@@ -21,6 +41,8 @@ jobs:
             CURRENT_PROJECT_VERSION=${{ github.run_number }} \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" archive 2>&1 | tee build-log.txt | grep -E "error:|warning: .*Swift|ARCHIVE" || true
           test -d build/Sales.xcarchive/Products/Applications/Sales.app
+          test -d build/Sales.xcarchive/Products/Applications/Sales.app/PlugIns/SalesWidget.appex
+          test -f build/Sales.xcarchive/Products/Applications/Sales.app/shopify.caf
       - name: Package ipa
         run: |
           mkdir -p build/Payload && cp -R build/Sales.xcarchive/Products/Applications/Sales.app build/Payload/
@@ -29,4 +51,4 @@ jobs:
         with: { name: Sales-ipa, path: Sales/build/Sales.ipa, retention-days: 30 }
       - if: failure()
         uses: actions/upload-artifact@v4
-        with: { name: sales-build-log, path: Sales/build-log.txt, retention-days: 7 }
+        with: { name: sales-logs, path: "Sales/*-log.txt", retention-days: 7 }

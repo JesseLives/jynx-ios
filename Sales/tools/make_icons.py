@@ -50,4 +50,10 @@ write(os.path.join(ASSETS, "AppIcon.appiconset"),
 write(os.path.join(ASSETS, "logo.imageset"),
       {"images": [{"filename": "logo.png", "idiom": "universal"}], "info": {"author": "xcode", "version": 1}},
       {"logo.png": im.resize((180, 180), Image.LANCZOS)})
+WIDGET = os.path.join(HERE, "..", "Widget", "Assets.xcassets")
+os.makedirs(WIDGET, exist_ok=True)
+json.dump({"info": {"author": "xcode", "version": 1}}, open(os.path.join(WIDGET, "Contents.json"), "w"), indent=2)
+write(os.path.join(WIDGET, "logo.imageset"),
+      {"images": [{"filename": "logo.png", "idiom": "universal"}], "info": {"author": "xcode", "version": 1}},
+      {"logo.png": im.resize((180, 180), Image.LANCZOS)})
 print("icons written")

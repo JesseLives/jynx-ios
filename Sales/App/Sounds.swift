@@ -1,35 +1,32 @@
+import AVFoundation
 import Foundation
+import SalesKit
 
 enum Sounds {
     static let rate = 44_100.0
 
     static func install() {
-        let dir = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask)[0].appendingPathComponent("Sounds")
+        let dir = librarySounds
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        for (name, samples) in [("kaching", kaching()), ("chime", chime()), ("coin", coin())] {
-            try? wav(samples).write(to: dir.appendingPathComponent("\(name).wav"))
+        for (name, samples) in [("chime.wav", chime()), ("coin.wav", coin())] {
+            let url = dir.appendingPathComponent(name)
+            if !FileManager.default.fileExists(atPath: url.path) { try? wav(samples).write(to: url, options: .atomic) }
         }
     }
 
-    static func url(_ s: NotificationSound) -> URL? {
-        guard let f = s.file else { return nil }
-        return FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask)[0].appendingPathComponent("Sounds/\(f)")
+    static func url(_ s: SoundChoice) -> URL? {
+        switch s {
+        case .shopify: Bundle.main.url(forResource: "shopify", withExtension: "caf")
+        case .chime, .coin: s.file.map { librarySounds.appendingPathComponent($0) }
+        case .system: nil
+        }
+    }
+
+    private static var librarySounds: URL {
+        FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask)[0].appendingPathComponent("Sounds")
     }
 
     static var silence: Data { wav([Float](repeating: 0, count: Int(rate))) }
-
-    static func kaching() -> [Float] {
-        var out = [Float](repeating: 0, count: Int(rate * 1.1))
-        var seed: UInt32 = 1
-        for i in 0..<Int(rate * 0.035) {                        // "ka": a burst of noise
-            seed = seed &* 1_664_525 &+ 1_013_904_223
-            let noise = Float(Int32(bitPattern: seed)) / Float(Int32.max)
-            out[i] += noise * 0.35 * Float(exp(-Double(i) / (rate * 0.008)))
-        }
-        bell(&out, at: 0.05, freq: 2_093, amp: 0.32, decay: 0.35)  // "ching": C7
-        bell(&out, at: 0.06, freq: 2_637, amp: 0.26, decay: 0.45)  // and E7
-        return out
-    }
 
     static func chime() -> [Float] {
         var out = [Float](repeating: 0, count: Int(rate * 0.9))
@@ -45,12 +42,6 @@ enum Sounds {
         return out
     }
 
-    private static func bell(_ out: inout [Float], at: Double, freq: Double, amp: Double, decay: Double) {
-        for (mult, share) in [(1.0, 1.0), (2.76, 0.4), (5.4, 0.2)] {
-            tone(&out, at: at, freq: freq * mult, amp: amp * share, length: Double(out.count) / rate - at, decay: decay / mult.squareRoot())
-        }
-    }
-
     private static func tone(_ out: inout [Float], at: Double, freq: Double, amp: Double, length: Double, decay: Double, square: Bool = false) {
         let start = Int(at * rate), n = min(Int(length * rate), out.count - start)
         guard n > 0 else { return }
@@ -58,8 +49,7 @@ enum Sounds {
             let t = Double(i) / rate
             var v = sin(2 * .pi * freq * t)
             if square { v = v >= 0 ? 0.6 : -0.6 }
-            let attack = min(1, t / 0.002)                          // no click at the start
-            out[start + i] += Float(v * amp * attack * exp(-t / decay))
+            out[start + i] += Float(v * amp * min(1, t / 0.002) * exp(-t / decay))
         }
     }
 
