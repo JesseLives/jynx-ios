@@ -100,9 +100,10 @@ final class SalesUITests: XCTestCase {
 
     private func reveal(_ element: XCUIElement, up: Bool = false, in target: XCUIApplication? = nil) {
         let a = target ?? app
-        for _ in 0..<12 {
+        for _ in 0..<15 {
             if element.exists && element.isHittable { return }
-            up ? a.swipeDown() : a.swipeUp()
+            let screen = a.windows.firstMatch.frame
+            if element.exists && element.frame.midY < screen.midY { a.swipeDown(velocity: .slow) } else { a.swipeUp(velocity: .slow) }
         }
         XCTAssertTrue(element.isHittable, "could not scroll to \(element)")
     }

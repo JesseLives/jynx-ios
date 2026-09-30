@@ -130,9 +130,13 @@ struct ContentView: View {
         return session.total == 1 ? sent : "\(sent) · ends \(session.end.formatted(time))"
     }
 
-    private var preview: some View {
+    private var sampleSale: Sale {
         let product = s.sellable[0]
-        let sale = Sale(order: 7481, product: product.shownName, items: 1, cents: product.priceCents)
+        return Sale(order: 7481, product: product.shownName, items: 1, cents: product.priceCents)
+    }
+
+    private var preview: some View {
+        let sale = sampleSale
         return HStack(spacing: 12) {
             Image("logo").resizable().scaledToFit().frame(width: 44, height: 44)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
@@ -220,10 +224,11 @@ struct ContentView: View {
                 Menu {
                     ForEach(Array(presets.enumerated()), id: \.offset) { i, p in
                         Button { s.presetIndex = i } label: {
+                            let shown = fill(p.title, sale: sampleSale, store: s.store) + " · " + fill(p.body, sale: sampleSale, store: s.store)
                             if i == min(max(0, s.presetIndex), presets.count - 1) {
-                                Label(p.title + " · " + p.body, systemImage: "checkmark")
+                                Label(shown, systemImage: "checkmark")
                             } else {
-                                Text(p.title + " · " + p.body)
+                                Text(shown)
                             }
                         }
                     }
@@ -231,8 +236,8 @@ struct ContentView: View {
                     HStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Choose preset").font(.system(size: 14, weight: .semibold)).foregroundStyle(Palette.blue)
-                            Text(s.text.title).font(.system(size: 17, weight: .semibold))
-                            Text(s.text.body).font(.system(size: 16)).foregroundStyle(Palette.muted)
+                            Text(fill(s.text.title, sale: sampleSale, store: s.store)).font(.system(size: 17, weight: .semibold))
+                            Text(fill(s.text.body, sale: sampleSale, store: s.store)).font(.system(size: 16)).foregroundStyle(Palette.muted)
                         }
                         .multilineTextAlignment(.leading)
                         Spacer()
