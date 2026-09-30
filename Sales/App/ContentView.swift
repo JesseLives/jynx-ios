@@ -266,7 +266,7 @@ struct ContentView: View {
                         .font(.system(size: 17, weight: .semibold))
                         .focused($typing)
                         .accessibilityIdentifier("productName")
-                    PriceField(cents: $product.priceCents).focused($typing)
+                    PriceField(cents: $product.priceCents, focus: $typing)
                     if s.products.count > 1 {
                         Button {
                             typing = false
@@ -329,7 +329,7 @@ struct ContentView: View {
 
     private var rateCard: some View {
         Card("Notifications per 10 seconds") {
-            WholeNumberRow(label: "Amount", value: $s.perTenSeconds, range: 1...Limits.maxPerTenSeconds, id: "rateField").focused($typing)
+            WholeNumberRow(label: "Amount", value: $s.perTenSeconds, range: 1...Limits.maxPerTenSeconds, focus: $typing, id: "rateField")
             Text("Up to 500 per 10 sec · 5,000 max per session").font(.subheadline).foregroundStyle(Palette.muted)
             Text(countLine).font(.subheadline).foregroundStyle(Palette.muted).accessibilityIdentifier("countLine")
         }

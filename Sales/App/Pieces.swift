@@ -109,34 +109,61 @@ struct WholeNumberRow: View {
     let label: String
     @Binding var value: Int
     let range: ClosedRange<Int>
+    var focus: FocusState<Bool>.Binding
     var id = ""
+    @State private var text = ""
+
     var body: some View {
         HStack {
             Text(label).font(.system(size: 18)).foregroundStyle(Palette.muted)
-            TextField("0", value: Binding(get: { value }, set: { value = min(range.upperBound, max(range.lowerBound, $0)) }), format: .number)
+            TextField("0", text: $text)
                 .keyboardType(.numberPad)
                 .multilineTextAlignment(.trailing)
                 .font(.system(size: 22, weight: .bold))
+                .focused(focus)
                 .accessibilityIdentifier(id)
         }
         .padding(.horizontal, 16).padding(.vertical, 12)
         .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Palette.field))
+        .onAppear { text = String(value) }
+        .onChange(of: text) { _, typed in
+            let digits = String(typed.filter(\.isNumber).prefix(6))
+            if digits != typed { text = digits; return }
+            if let n = Int(digits) { value = min(range.upperBound, max(range.lowerBound, n)) }
+        }
+        .onChange(of: focus.wrappedValue) { _, on in if !on { text = String(value) } }
+        .onChange(of: value) { _, v in if !focus.wrappedValue { text = String(v) } }   // a loaded setup
     }
 }
 
 struct PriceField: View {
     @Binding var cents: Int
+    var focus: FocusState<Bool>.Binding
+    @State private var text = ""
+
     var body: some View {
         HStack(spacing: 2) {
             Text("$").foregroundStyle(Palette.muted)
-            TextField("0.00", value: Binding(get: { Double(cents) / 100 }, set: { cents = min(10_000_000, max(0, Int(($0 * 100).rounded()))) }),
-                      format: .number.precision(.fractionLength(2)).grouping(.never))
+            TextField("0.00", text: $text)
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.trailing)
                 .font(.system(size: 17, weight: .semibold))
                 .frame(width: 90)
+                .focused(focus)
+                .accessibilityIdentifier("productPrice")
         }
+        .onAppear { text = shown(cents) }
+        .onChange(of: text) { _, typed in
+            let clean = typed.replacingOccurrences(of: ",", with: ".").filter { $0.isNumber || $0 == "." }
+            if clean != typed { text = clean; return }
+            if let d = Double(clean), d.isFinite { cents = min(10_000_000, max(0, Int((d * 100).rounded()))) }
+            else if clean.isEmpty { cents = 0 }
+        }
+        .onChange(of: focus.wrappedValue) { _, on in if !on { text = shown(cents) } }
+        .onChange(of: cents) { _, c in if !focus.wrappedValue { text = shown(c) } }
     }
+
+    private func shown(_ c: Int) -> String { String(format: "%.2f", Double(c) / 100) }
 }
 
 struct BigButton: View {

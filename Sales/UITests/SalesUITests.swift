@@ -35,11 +35,11 @@ final class SalesUITests: XCTestCase {
         app.buttons["length-tenMinutes"].tap()
         let rate = app.textFields["rateField"]
         reveal(rate)
-        rate.tap()
+        rate.coordinate(withNormalizedOffset: CGVector(dx: 0.97, dy: 0.5)).tap()   // the end of the number
         rate.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: 4) + "10")
-        dismissKeyboard()
-        reveal(app.staticTexts["countLine"])
         XCTAssertEqual(app.staticTexts["countLine"].label, "600 notifications over 10 minutes")
+        dismissKeyboard()
+        XCTAssertEqual(rate.value as? String, "10")
         shot("03 timing")
 
         reveal(app.switches["startLaterToggle"])
@@ -124,9 +124,10 @@ final class SalesUITests: XCTestCase {
     }
 
     private func dismissKeyboard() {
-        if app.keyboards.count > 0 {
-            if app.toolbars.buttons["Done"].exists { app.toolbars.buttons["Done"].tap() } else { app.swipeDown() }
-        }
+        guard app.keyboards.count > 0 else { return }
+        let done = app.buttons["Done"]
+        if done.exists && done.isHittable { done.tap() } else { app.swipeDown(velocity: .slow) }
+        XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 3), "the keyboard closes")
     }
 
     private func allowNotifications() {
