@@ -22,6 +22,10 @@ struct ContentView: View {
                 ScrollView {
                     VStack(spacing: 16) {
                         todayCard
+                        if let note = runner.pausedNote {
+                            Text(note).font(.footnote).foregroundStyle(.orange).frame(maxWidth: .infinity, alignment: .leading)
+                                .accessibilityIdentifier("pausedNote")
+                        }
                         if let toast {
                             Text(toast).font(.subheadline.weight(.semibold)).foregroundStyle(Palette.green)
                                 .transition(.opacity).accessibilityIdentifier("toast")

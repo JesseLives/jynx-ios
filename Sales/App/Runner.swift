@@ -9,6 +9,7 @@ final class Runner: ObservableObject {
     @Published private(set) var today = Storage.today
     @Published var problem: String?
     @Published var notificationsOff = false
+    @Published private(set) var pausedNote: String?
 
     private let window = 60
     private var scheduledUpTo = 0
@@ -16,6 +17,7 @@ final class Runner: ObservableObject {
     private var timer: Timer?
     private var keepAwake: AVAudioPlayer?
     private var lastSaved = Date.distantPast
+    private var lastTick = Date()
     private let live = LiveTotal()
     private let center = UNUserNotificationCenter.current()
 
@@ -23,6 +25,9 @@ final class Runner: ObservableObject {
         NotificationCenter.default.addObserver(forName: AVAudioSession.interruptionNotification, object: nil, queue: .main) { [weak self] note in
             let ended = (note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt) == AVAudioSession.InterruptionType.ended.rawValue
             if ended { Task { @MainActor in self?.resumeAudio() } }
+        }
+        NotificationCenter.default.addObserver(forName: AVAudioSession.routeChangeNotification, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in self?.resumeAudio() }
         }
         NotificationCenter.default.addObserver(forName: AVAudioSession.mediaServicesWereResetNotification, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in
@@ -131,6 +136,7 @@ final class Runner: ObservableObject {
 
     private func startTimer() {
         timer?.invalidate()
+        lastTick = Date()
         let t = Timer(timeInterval: 0.25, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.tick() }
         }
@@ -139,7 +145,14 @@ final class Runner: ObservableObject {
     }
 
     private func tick() {
-        guard var s = session else { return }
+        guard var s = session else { lastTick = Date(); return }
+        let gap = Date().timeIntervalSince(lastTick)
+        if gap > 15 {
+            let t = Date.FormatStyle(date: .omitted, time: .shortened)
+            pausedNote = "iPhone paused the app from \(lastTick.formatted(t)) to \(Date().formatted(t)). The widget waited until it woke; notifications kept coming."
+        }
+        lastTick = Date()
+        if keepAwake != nil && keepAwake?.isPlaying == false { resumeAudio() }
         let fired = s.advance(to: Date(), sentBelow: scheduledUpTo)
         if !fired.isEmpty {
             for f in fired { today.add(f.sale, at: f.at) }
@@ -230,7 +243,7 @@ final class Runner: ObservableObject {
             try AVAudioSession.sharedInstance().setActive(true)
             let player = try AVAudioPlayer(data: Sounds.silence)
             player.numberOfLoops = -1
-            player.volume = 0
+            player.volume = 1
             player.play()
             keepAwake = player
         } catch {
