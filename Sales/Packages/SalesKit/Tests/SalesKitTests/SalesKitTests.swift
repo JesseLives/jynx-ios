@@ -179,6 +179,16 @@ final class TodayTests: XCTestCase {
         XCTAssertEqual(t.cents, 500)
         XCTAssertEqual(t.orders, 1)
     }
+
+    func testASaleFromAnEarlierDayNeverRewindsToday() {
+        let noon = Date(timeIntervalSince1970: 1_790_000_000)
+        let tomorrow = noon.addingTimeInterval(86_400)
+        var t = Today(day: Today.key(tomorrow, calendar: utc))
+        t.add(Sale(order: 1, product: "A", items: 1, cents: 1_000), at: noon, calendar: utc)
+        XCTAssertEqual(t, Today(day: Today.key(tomorrow, calendar: utc)), "yesterday's sale is not today's")
+        t.add(Sale(order: 2, product: "A", items: 1, cents: 700), at: tomorrow, calendar: utc)
+        XCTAssertEqual(t.cents, 700)
+    }
 }
 
 final class SettingsTests: XCTestCase {

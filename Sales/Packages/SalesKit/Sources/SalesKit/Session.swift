@@ -99,6 +99,7 @@ public struct Today: Codable, Equatable, Sendable {
 
     public mutating func add(_ sale: Sale, at date: Date, calendar: Calendar = .current) {
         let k = Today.key(date, calendar: calendar)
+        if k < day { return }                 // "yyyy-MM-dd" sorts by date
         if k != day { self = Today(day: k) }
         cents += sale.cents
         orders += 1

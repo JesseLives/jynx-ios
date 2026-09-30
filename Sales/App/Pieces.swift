@@ -127,7 +127,7 @@ struct WholeNumberRow: View {
         .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Palette.field))
         .onAppear { text = String(value) }
         .onChange(of: text) { _, typed in
-            let digits = String(typed.filter(\.isNumber).prefix(6))
+            let digits = String(typed.filter { ("0"..."9").contains($0) }.prefix(6))
             if digits != typed { text = digits; return }
             if let n = Int(digits) { value = min(range.upperBound, max(range.lowerBound, n)) }
         }
@@ -154,7 +154,7 @@ struct PriceField: View {
         }
         .onAppear { text = shown(cents) }
         .onChange(of: text) { _, typed in
-            let clean = typed.replacingOccurrences(of: ",", with: ".").filter { $0.isNumber || $0 == "." }
+            let clean = typed.replacingOccurrences(of: ",", with: ".").filter { ("0"..."9").contains($0) || $0 == "." }
             if clean != typed { text = clean; return }
             if let d = Double(clean), d.isFinite { cents = min(10_000_000, max(0, Int((d * 100).rounded()))) }
             else if clean.isEmpty { cents = 0 }

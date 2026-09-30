@@ -12,6 +12,7 @@ final class Runner: ObservableObject {
 
     private let window = 60
     private var scheduledUpTo = 0
+    private var starting = false
     private var timer: Timer?
     private var keepAwake: AVAudioPlayer?
     private var lastSaved = Date.distantPast
@@ -33,12 +34,13 @@ final class Runner: ObservableObject {
     }
 
     var running: Bool { session != nil }
-    var waiting: Bool { session.map { $0.start > Date() } ?? false }
 
     // MARK: - Start, resume, stop
 
     func start(_ s: Settings) async {
-        guard session == nil else { return }
+        guard session == nil, !starting else { return }
+        starting = true
+        defer { starting = false }
         problem = nil
         guard await allowed() else { return }
         let now = Date()
