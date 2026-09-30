@@ -15,10 +15,14 @@ struct SalesApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environmentObject(runner)
-                .preferredColorScheme(.dark)
-                .task { await runner.resume() }
+            Group {
+                if ProcessInfo.processInfo.arguments.contains("-preview-live") {
+                    LivePreview()
+                } else {
+                    ContentView().environmentObject(runner).task { await runner.resume() }
+                }
+            }
+            .preferredColorScheme(.dark)
         }
         .onChange(of: phase) { _, now in
             if now == .active { runner.appeared() }

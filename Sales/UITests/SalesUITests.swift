@@ -119,6 +119,19 @@ final class SalesUITests: XCTestCase {
         XCTAssertTrue(again.buttons["setup-Drop day"].exists, "setups survive a relaunch")
     }
 
+    func testLiveTotalLooksLikeAStoreWidget() {
+        app.launchArguments = ["-preview-live"]
+        app.launch()
+        let widget = app.descendants(matching: .any)["livePreview"]
+        XCTAssertTrue(widget.waitForExistence(timeout: 10))
+        for text in ["Dopamine", "Today", "Total sales", "$1,944.70", "Orders", "61"] {
+            XCTAssertTrue(app.staticTexts[text].exists, "shows \(text)")
+        }
+        XCTAssertFalse(app.staticTexts.containing(NSPredicate(format: "label CONTAINS[c] ' of '")).firstMatch.exists, "no x of y")
+        XCTAssertFalse(app.staticTexts.containing(NSPredicate(format: "label CONTAINS[c] 'ends'")).firstMatch.exists, "no end time")
+        shot("10 lock screen live total")
+    }
+
     // MARK: - Helpers
 
     private func shot(_ name: String, in target: XCUIApplication? = nil) {
