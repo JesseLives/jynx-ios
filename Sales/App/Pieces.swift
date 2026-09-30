@@ -39,27 +39,34 @@ struct Segments<T: Hashable>: View {
     let pick: (T) -> Void
 
     var body: some View {
-        let grid = Array(repeating: GridItem(.flexible(), spacing: 4), count: columns == 0 ? items.count : columns)
-        LazyVGrid(columns: grid, spacing: 4) {
-            ForEach(items, id: \.self) { item in
-                Button { pick(item) } label: {
-                    Text(label(item))
-                        .font(.system(size: 16, weight: .semibold))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 11)
-                        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(item == selected ? Color(white: 0.3) : .clear))
-                        .foregroundStyle(item == selected ? .white : Color(white: 0.75))
-                        .contentShape(Rectangle())
+        let perRow = columns == 0 ? items.count : columns
+        let rows = stride(from: 0, to: items.count, by: perRow).map { Array(items[$0..<min($0 + perRow, items.count)]) }
+        VStack(spacing: 4) {
+            ForEach(rows.indices, id: \.self) { r in
+                HStack(spacing: 4) {
+                    ForEach(rows[r], id: \.self) { item in cell(item) }
                 }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier(id(item))
-                .accessibilityAddTraits(item == selected ? .isSelected : [])
             }
         }
         .padding(4)
         .background(RoundedRectangle(cornerRadius: 15, style: .continuous).fill(Palette.field))
+    }
+
+    private func cell(_ item: T) -> some View {
+        Button { pick(item) } label: {
+            Text(label(item))
+                .font(.system(size: 16, weight: .semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 11)
+                .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(item == selected ? Color(white: 0.3) : .clear))
+                .foregroundStyle(item == selected ? .white : Color(white: 0.75))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(id(item))
+        .accessibilityAddTraits(item == selected ? .isSelected : [])
     }
 }
 

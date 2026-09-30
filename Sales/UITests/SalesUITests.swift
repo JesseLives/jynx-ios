@@ -28,8 +28,8 @@ final class SalesUITests: XCTestCase {
         XCTAssertEqual(names.element(boundBy: 1).value as? String, "Hoodie")
         shot("02 products")
 
-        reveal(app.buttons["length-oneMinute"])
         for id in ["length-now", "length-thirtyMinutes", "length-allDay", "length-oneMinute"] {
+            reveal(app.buttons[id])
             app.buttons[id].tap()
         }
         reveal(app.staticTexts["countLine"])
