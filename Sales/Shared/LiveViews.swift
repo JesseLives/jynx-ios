@@ -44,8 +44,7 @@ struct LockScreenTotal: View {
 struct LiveLogo: View {
     let size: CGFloat
     var body: some View {
-        Image("logo").resizable().scaledToFit().frame(width: size, height: size)
-            .clipShape(RoundedRectangle(cornerRadius: size * 0.22, style: .continuous))
+        Image("bag").resizable().scaledToFit().frame(width: size, height: size)
     }
 }
 

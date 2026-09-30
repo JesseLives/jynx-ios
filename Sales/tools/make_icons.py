@@ -53,7 +53,16 @@ write(os.path.join(ASSETS, "logo.imageset"),
 WIDGET = os.path.join(HERE, "..", "Widget", "Assets.xcassets")
 os.makedirs(WIDGET, exist_ok=True)
 json.dump({"info": {"author": "xcode", "version": 1}}, open(os.path.join(WIDGET, "Contents.json"), "w"), indent=2)
-write(os.path.join(WIDGET, "logo.imageset"),
-      {"images": [{"filename": "logo.png", "idiom": "universal"}], "info": {"author": "xcode", "version": 1}},
-      {"logo.png": im.resize((180, 180), Image.LANCZOS)})
+bag = Image.open(os.path.join(HERE, "src", "shopify.png")).convert("RGBA")
+bag = bag.crop(bag.getbbox())
+side = max(bag.size); square = Image.new("RGBA", (side, side), (0, 0, 0, 0))
+square.alpha_composite(bag, ((side - bag.width) // 2, (side - bag.height) // 2))
+square = square.resize((180, 180), Image.LANCZOS)
+import shutil as _sh
+_sh.rmtree(os.path.join(WIDGET, "logo.imageset"), ignore_errors=True)
+for cat in (WIDGET, ASSETS):
+    os.makedirs(os.path.join(cat, "bag.imageset"), exist_ok=True)
+    square.save(os.path.join(cat, "bag.imageset", "bag.png"))   # keeps its transparency
+    json.dump({"images": [{"filename": "bag.png", "idiom": "universal"}], "info": {"author": "xcode", "version": 1}},
+              open(os.path.join(cat, "bag.imageset", "Contents.json"), "w"), indent=2)
 print("icons written")
