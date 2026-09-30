@@ -67,6 +67,7 @@ struct Choice: View {
     let title: String
     let note: String
     let on: Bool
+    var id = ""
     let pick: () -> Void
     var body: some View {
         Button(action: pick) {
@@ -85,6 +86,7 @@ struct Choice: View {
         .buttonStyle(.plain)
         .foregroundStyle(.white)
         .accessibilityAddTraits(on ? .isSelected : [])
+        .accessibilityIdentifier(id)
     }
 }
 

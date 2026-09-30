@@ -54,7 +54,9 @@ final class Runner: ObservableObject {
         }
         var rng = SystemRandomNumberGenerator()
         let base = s.badge ? Storage.badge : 0
-        let new = Session(settings: s, start: at, firstOrder: Storage.takeOrders(s.count), badgeBase: base, rng: &rng)
+        let first = Storage.nextOrder()
+        let new = Session(settings: s, start: at, firstOrder: first, badgeBase: base, rng: &rng)
+        Storage.ordersUsed(upTo: first + new.total)
         center.removeAllPendingNotificationRequests()
         session = new
         scheduledUpTo = 0

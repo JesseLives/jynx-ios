@@ -47,8 +47,14 @@ public struct Session: Codable, Equatable, Sendable {
         self.start = start
         self.settings = settings
         self.badgeBase = badgeBase
-        let n = settings.count
-        times = fireTimes(count: n, over: settings.length.seconds, pacing: settings.pacing, rng: &rng)
+        if settings.length == .now {
+            times = [0]
+        } else if settings.pacing == .realistic {
+            times = realisticTimes(over: settings.length.seconds, perHalfHour: settings.perHalfHour, rng: &rng)
+        } else {
+            times = fireTimes(count: settings.count, over: settings.length.seconds, pacing: settings.pacing, rng: &rng)
+        }
+        let n = times.count
         let products = settings.sellable
         let most = max(1, min(10, settings.maxItems))
         sales = (0..<n).map { i in

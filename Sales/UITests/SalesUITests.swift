@@ -42,6 +42,18 @@ final class SalesUITests: XCTestCase {
         XCTAssertEqual(rate.value as? String, "10")
         shot("03 timing")
 
+        reveal(app.buttons["pacing-realistic"])
+        app.buttons["pacing-realistic"].tap()
+        reveal(app.staticTexts["countLine"])
+        XCTAssertTrue(app.staticTexts["countLine"].label.hasPrefix("About 3 orders over 10 minutes: 5 to 10 every 30 minutes"),
+                      app.staticTexts["countLine"].label)
+        XCTAssertTrue(app.textFields["halfHourLow"].exists && app.textFields["halfHourHigh"].exists)
+        shot("03b realistic")
+        reveal(app.buttons["pacing-variable"])
+        app.buttons["pacing-variable"].tap()
+        reveal(app.staticTexts["countLine"])
+        XCTAssertEqual(app.staticTexts["countLine"].label, "600 notifications over 10 minutes")
+
         reveal(app.switches["startLaterToggle"])
         app.switches["startLaterToggle"].switches.firstMatch.tap()
         XCTAssertTrue(app.datePickers["startAtPicker"].waitForExistence(timeout: 3))

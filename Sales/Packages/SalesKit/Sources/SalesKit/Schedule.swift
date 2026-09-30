@@ -3,6 +3,7 @@ import Foundation
 public enum Pacing: String, Codable, CaseIterable, Sendable {
     case linear
     case variable
+    case realistic
 }
 
 public enum SessionLength: String, Codable, CaseIterable, Sendable {
@@ -57,7 +58,7 @@ public func fireTimes<G: RandomNumberGenerator>(count n: Int, over duration: Dou
     guard n > 0 else { return [] }
     guard duration > 0 else { return [Double](repeating: 0, count: n) }
     switch pacing {
-    case .linear:
+    case .linear, .realistic:
         return (0..<n).map { (Double($0) + 0.5) * duration / Double(n) }
     case .variable:
         var times: [Double] = []
@@ -79,4 +80,22 @@ public func fireTimes<G: RandomNumberGenerator>(count n: Int, over duration: Dou
         let scale = last > 0 ? (duration * 0.98) / last : 1
         return times.map { $0 * scale }.sorted()
     }
+}
+
+public func realisticTimes<G: RandomNumberGenerator>(over duration: Double, perHalfHour: ClosedRange<Int>, rng: inout G) -> [Double] {
+    guard duration > 0 else { return [0] }
+    let block = 1_800.0
+    let lo = max(0, perHalfHour.lowerBound), hi = max(lo, perHalfHour.upperBound)
+    var times: [Double] = []
+    var t = 0.0
+    while t < duration && times.count < Limits.maxPerSession {
+        let len = min(block, duration - t)
+        let share = Double(Int.random(in: lo...hi, using: &rng)) * len / block
+        var n = Int(share)
+        if Double.random(in: 0..<1, using: &rng) < share - Double(n) { n += 1 }
+        for _ in 0..<n { times.append(t + Double.random(in: 0..<len, using: &rng)) }
+        t += len
+    }
+    if times.isEmpty { times = [Double.random(in: 0..<duration, using: &rng)] }
+    return Array(times.sorted().prefix(Limits.maxPerSession))
 }

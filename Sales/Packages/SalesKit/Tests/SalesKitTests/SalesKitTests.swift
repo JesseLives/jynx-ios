@@ -51,6 +51,53 @@ final class ScheduleTests: XCTestCase {
     }
 }
 
+final class RealisticTests: XCTestCase {
+    func testFiveToTenInEveryHalfHourAtRandomTimes() {
+        for seed: UInt64 in [1, 2, 3, 7, 11] {
+            var g = Seeded(s: seed)
+            let t = realisticTimes(over: 12 * 3_600, perHalfHour: 5...10, rng: &g)
+            XCTAssertEqual(t, t.sorted())
+            XCTAssertGreaterThanOrEqual(t.first!, 0)
+            XCTAssertLessThan(t.last!, 12 * 3_600)
+            XCTAssertTrue((24 * 5...24 * 10).contains(t.count), "\(t.count)")
+            for block in 0..<24 {
+                let inBlock = t.filter { $0 >= Double(block) * 1_800 && $0 < Double(block + 1) * 1_800 }.count
+                XCTAssertTrue((5...10).contains(inBlock), "half hour \(block): \(inBlock)")
+            }
+            let gaps = zip(t.dropFirst(), t).map { $0 - $1 }
+            XCTAssertTrue(gaps.contains { $0 < 60 } && gaps.contains { $0 > 400 })
+        }
+    }
+
+    func testAShortSessionGetsItsShareAndNeverNothing() {
+        var total = 0
+        for seed: UInt64 in 1...200 {
+            var g = Seeded(s: seed)
+            let t = realisticTimes(over: 600, perHalfHour: 5...10, rng: &g)   // a third of a half hour
+            XCTAssertTrue((1...4).contains(t.count), "\(t.count)")
+            XCTAssertTrue(t.allSatisfy { $0 >= 0 && $0 < 600 })
+            total += t.count
+        }
+        XCTAssertEqual(Double(total) / 200, 2.5, accuracy: 0.35, "on average a third of 7.5")
+        var g = Seeded(s: 1)
+        XCTAssertEqual(realisticTimes(over: 1_800, perHalfHour: 0...0, rng: &g).count, 1, "never an empty session")
+        XCTAssertEqual(realisticTimes(over: 1_800, perHalfHour: 3...3, rng: &g).count, 3)
+    }
+
+    func testSessionUsesRealisticPacingAndItsOwnCount() {
+        var s = Settings()
+        s.length = .oneHour
+        s.pacing = .realistic
+        s.perHalfHour = 5...10
+        XCTAssertEqual(s.expectedCount, 15)
+        var g = Seeded(s: 5)
+        let session = Session(settings: s, start: Date(), firstOrder: 100, badgeBase: 0, rng: &g)
+        XCTAssertTrue((10...20).contains(session.total))
+        XCTAssertEqual(session.sales.count, session.total)
+        XCTAssertEqual(session.sales.last?.order, 100 + session.total - 1)
+    }
+}
+
 final class TextTests: XCTestCase {
     func testTheScreenshotNotification() {
         let sale = Sale(order: 7481, product: "My Product", items: 1, cents: 3_899)

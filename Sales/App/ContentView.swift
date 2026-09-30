@@ -166,8 +166,8 @@ struct ContentView: View {
         productsCard
         whenCard
         if s.length != .now {
-            rateCard
             pacingCard
+            if s.pacing == .realistic { halfHourCard } else { rateCard }
         }
         soundCard
         extrasCard
@@ -343,9 +343,28 @@ struct ContentView: View {
 
     private var pacingCard: some View {
         Card("Pacing") {
-            Choice(title: "Linear", note: "Even spacing between each notification", on: s.pacing == .linear) { s.pacing = .linear }
-            Choice(title: "Variable ratio", note: "Unpredictable bursts — sometimes more, sometimes none", on: s.pacing == .variable) { s.pacing = .variable }
+            Choice(title: "Realistic", note: "A few orders every 30 minutes at random times, like a real store",
+                   on: s.pacing == .realistic, id: "pacing-realistic") { s.pacing = .realistic }
+            Choice(title: "Linear", note: "Even spacing between each notification", on: s.pacing == .linear, id: "pacing-linear") { s.pacing = .linear }
+            Choice(title: "Variable ratio", note: "Unpredictable bursts — sometimes more, sometimes none",
+                   on: s.pacing == .variable, id: "pacing-variable") { s.pacing = .variable }
         }
+    }
+
+    private var halfHourCard: some View {
+        Card("Orders per 30 minutes") {
+            HStack(spacing: 10) {
+                WholeNumberRow(label: "From", value: $s.perHalfHourLow, range: 0...500, focus: $typing, id: "halfHourLow")
+                WholeNumberRow(label: "To", value: $s.perHalfHourHigh, range: 1...500, focus: $typing, id: "halfHourHigh")
+            }
+            Text(halfHourLine).font(.subheadline).foregroundStyle(Palette.muted).accessibilityIdentifier("countLine")
+        }
+    }
+
+    private var halfHourLine: String {
+        let r = s.perHalfHour
+        let each = r.lowerBound == r.upperBound ? "\(r.lowerBound)" : "\(r.lowerBound) to \(r.upperBound)"
+        return "About \(s.expectedCount.formatted()) orders \(s.length.span): \(each) every 30 minutes, at random times"
     }
 
     private var soundCard: some View {

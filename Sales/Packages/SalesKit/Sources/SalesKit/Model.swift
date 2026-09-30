@@ -66,6 +66,8 @@ public struct Settings: Codable, Equatable, Sendable {
     public var length: SessionLength = .tenMinutes
     public var perTenSeconds = 100
     public var pacing: Pacing = .variable
+    public var perHalfHourLow = 5
+    public var perHalfHourHigh = 10
     public var sound: SoundChoice = .shopify
     public var badge = true
     public var liveActivity = true
@@ -80,13 +82,32 @@ public struct Settings: Codable, Equatable, Sendable {
 
     public var count: Int { sessionCount(length: length, perTenSeconds: perTenSeconds) }
 
+    public var perHalfHour: ClosedRange<Int> {
+        get {
+            let a = max(0, min(500, perHalfHourLow)), b = max(0, min(500, perHalfHourHigh))
+            return min(a, b)...max(a, b)
+        }
+        set {
+            perHalfHourLow = newValue.lowerBound
+            perHalfHourHigh = newValue.upperBound
+        }
+    }
+
+    public var expectedCount: Int {
+        guard length != .now else { return 1 }
+        guard pacing == .realistic else { return count }
+        let r = perHalfHour
+        return max(1, min(Limits.maxPerSession, Int((Double(r.lowerBound + r.upperBound) / 2 * length.seconds / 1_800).rounded())))
+    }
+
     public var sellable: [Product] {
         let p = products.filter { $0.priceCents > 0 }
         return p.isEmpty ? [Product(name: "My Product", priceCents: 3_899)] : p
     }
 
     enum CodingKeys: String, CodingKey {
-        case textMode, presetIndex, custom, products, maxItems, store, length, perTenSeconds, pacing, sound, badge, liveActivity, startLater, startAt
+        case textMode, presetIndex, custom, products, maxItems, store, length, perTenSeconds, pacing, perHalfHourLow, perHalfHourHigh
+        case sound, badge, liveActivity, startLater, startAt
     }
 
     public init(from decoder: Decoder) throws {
@@ -101,6 +122,8 @@ public struct Settings: Codable, Equatable, Sendable {
         length = (try? c.decode(SessionLength.self, forKey: .length)) ?? d.length
         perTenSeconds = (try? c.decode(Int.self, forKey: .perTenSeconds)) ?? d.perTenSeconds
         pacing = (try? c.decode(Pacing.self, forKey: .pacing)) ?? d.pacing
+        perHalfHourLow = (try? c.decode(Int.self, forKey: .perHalfHourLow)) ?? d.perHalfHourLow
+        perHalfHourHigh = (try? c.decode(Int.self, forKey: .perHalfHourHigh)) ?? d.perHalfHourHigh
         sound = (try? c.decode(SoundChoice.self, forKey: .sound)) ?? d.sound
         badge = (try? c.decode(Bool.self, forKey: .badge)) ?? d.badge
         liveActivity = (try? c.decode(Bool.self, forKey: .liveActivity)) ?? d.liveActivity

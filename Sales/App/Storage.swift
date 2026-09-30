@@ -24,12 +24,11 @@ enum Storage {
         get { d.integer(forKey: "scheduledUpTo") }
         set { d.set(newValue, forKey: "scheduledUpTo") }
     }
-    static func takeOrders(_ n: Int) -> Int {
-        var next = d.integer(forKey: "nextOrder")
-        if next == 0 { next = Int.random(in: 1_001...7_000) }
-        d.set(next + n, forKey: "nextOrder")
-        return next
+    static func nextOrder() -> Int {
+        let next = d.integer(forKey: "nextOrder")
+        return next == 0 ? Int.random(in: 1_001...7_000) : next
     }
+    static func ordersUsed(upTo next: Int) { d.set(next, forKey: "nextOrder") }
 
     private static var sessionURL: URL {
         let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
