@@ -108,6 +108,13 @@ final class TextTests: XCTestCase {
         XCTAssertEqual(fill(s.text.body, sale: seven, store: "BYMAR"), "[BYMAR] You have a new order for 7 items totaling $285.92 from Online Store.")
     }
 
+    func testSpacesAroundTheStoreNameNeverShow() {
+        let sale = Sale(order: 1, product: "Tee", items: 1, cents: 5_154)
+        XCTAssertEqual(fill(presets[0].body, sale: sale, store: "Dopamine "),
+                       "[Dopamine] You have a new order for 1 item totaling $51.54 from Online Store.")
+        XCTAssertEqual(fill("{store}|{product}", sale: Sale(order: 1, product: " Tee ", items: 1, cents: 1), store: "  My Store\n"), "My Store|Tee")
+    }
+
     func testTheLarpStyleNotificationIsStillThere() {
         let sale = Sale(order: 7481, product: "My Product", items: 1, cents: 3_899)
         XCTAssertEqual(fill(presets[1].title, sale: sale, store: "My Store"), "Order #7481 from Shopify")

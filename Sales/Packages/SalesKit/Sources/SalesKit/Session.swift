@@ -24,11 +24,12 @@ public func money(_ cents: Int) -> String {
 }
 
 public func fill(_ text: String, sale: Sale, store: String) -> String {
-    text.replacingOccurrences(of: "{order}", with: String(sale.order))
+    let product = sale.product.trimmingCharacters(in: .whitespacesAndNewlines)
+    return text.replacingOccurrences(of: "{order}", with: String(sale.order))
         .replacingOccurrences(of: "{amount}", with: money(sale.cents))
         .replacingOccurrences(of: "{items}", with: sale.items == 1 ? "1 item" : "\(sale.items) items")
-        .replacingOccurrences(of: "{product}", with: sale.items == 1 ? sale.product : "\(sale.product) × \(sale.items)")
-        .replacingOccurrences(of: "{store}", with: store)
+        .replacingOccurrences(of: "{product}", with: sale.items == 1 ? product : "\(product) × \(sale.items)")
+        .replacingOccurrences(of: "{store}", with: store.trimmingCharacters(in: .whitespacesAndNewlines))
 }
 
 public struct Session: Codable, Equatable, Sendable {
