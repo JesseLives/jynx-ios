@@ -145,3 +145,22 @@ public struct Setup: Codable, Identifiable, Equatable, Sendable {
         self.settings = settings
     }
 }
+
+public func productList(_ products: [Product]) -> String {
+    products.map { "\($0.name.trimmingCharacters(in: .whitespacesAndNewlines)) | \(String(format: "%.2f", Double($0.priceCents) / 100))" }
+        .joined(separator: "\n")
+}
+
+public func parseProductList(_ text: String) -> [Product] {
+    let line = try! NSRegularExpression(pattern: #"^(.*?)[\s|:\-–—,;\t]*\$?\s*(\d{1,7}(?:[.,]\d{1,2})?)\s*(?:\$|usd)?\s*$"#, options: [.caseInsensitive])
+    return text.split(whereSeparator: \.isNewline).compactMap { raw in
+        let s = String(raw).trimmingCharacters(in: .whitespaces)
+        let r = NSRange(s.startIndex..., in: s)
+        guard let m = line.firstMatch(in: s, range: r),
+              let nameR = Range(m.range(at: 1), in: s), let priceR = Range(m.range(at: 2), in: s),
+              let price = Double(s[priceR].replacingOccurrences(of: ",", with: ".")) else { return nil }
+        let name = s[nameR].trimmingCharacters(in: .whitespaces)
+        guard !name.isEmpty else { return nil }
+        return Product(name: name, priceCents: Int((price * 100).rounded()))
+    }
+}

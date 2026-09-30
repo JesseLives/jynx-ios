@@ -12,6 +12,7 @@ struct ContentView: View {
     @State private var newName = ""
     @State private var confirmReset = false
     @State private var toast: String?
+    @State private var pasted: [Product]?
     @FocusState private var typing: Bool
 
     var body: some View {
@@ -57,6 +58,13 @@ struct ContentView: View {
         }
         .confirmationDialog("Reset today's total to $0.00?", isPresented: $confirmReset, titleVisibility: .visible) {
             Button("Reset", role: .destructive) { runner.resetToday() }
+        }
+        .confirmationDialog(pasted.map { "Replace your \(s.products.count) products with the \($0.count) you copied?" } ?? "",
+                            isPresented: Binding(get: { pasted != nil }, set: { if !$0 { pasted = nil } }), titleVisibility: .visible) {
+            Button("Replace") {
+                if let p = pasted { s.products = Array(p.prefix(20)); flash("Loaded \(min(p.count, 20)) products") }
+                pasted = nil
+            }
         }
     }
 
@@ -262,7 +270,8 @@ struct ContentView: View {
         Card("Products") {
             ForEach($s.products) { $product in
                 HStack(spacing: 10) {
-                    TextField("Product name", text: $product.name)
+                    TextField("Product name", text: $product.name, axis: .vertical)   // long names wrap, all visible
+                        .lineLimit(1...3)
                         .font(.system(size: 17, weight: .semibold))
                         .focused($typing)
                         .accessibilityIdentifier("productName")
@@ -311,6 +320,20 @@ struct ContentView: View {
             Field(label: "Store name", text: $s.store).focused($typing)
             Text("Each order picks one product at random. The store name shows in brackets, like [BYMAR].")
                 .font(.footnote).foregroundStyle(Palette.muted)
+            HStack(spacing: 18) {
+                Button {
+                    UIPasteboard.general.string = productList(s.products)
+                    flash("Copied \(s.products.count) products")
+                } label: { Label("Copy list", systemImage: "doc.on.doc").font(.system(size: 15, weight: .semibold)) }
+                    .accessibilityIdentifier("copyProducts")
+                Button {
+                    let list = parseProductList(UIPasteboard.general.string ?? "")
+                    if list.isEmpty { flash("Nothing to paste: copy lines like \"Hoodie | 49.99\" first") } else { pasted = list }
+                } label: { Label("Paste list", systemImage: "doc.on.clipboard").font(.system(size: 15, weight: .semibold)) }
+                    .accessibilityIdentifier("pasteProducts")
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(Palette.blue)
         }
     }
 

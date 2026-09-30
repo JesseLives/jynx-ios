@@ -269,6 +269,24 @@ final class TodayTests: XCTestCase {
     }
 }
 
+final class ProductListTests: XCTestCase {
+    func testCopiesOutAndPastesBack() {
+        let products = [Product(name: "Oversized Heavyweight Hoodie – Washed Black (Limited Drop)", priceCents: 4_999),
+                        Product(name: "Cap ", priceCents: 2_400)]
+        let text = productList(products)
+        XCTAssertEqual(text, "Oversized Heavyweight Hoodie – Washed Black (Limited Drop) | 49.99\nCap | 24.00")
+        let back = parseProductList(text)
+        XCTAssertEqual(back.map(\.name), ["Oversized Heavyweight Hoodie – Washed Black (Limited Drop)", "Cap"])
+        XCTAssertEqual(back.map(\.priceCents), [4_999, 2_400])
+    }
+
+    func testReadsTheWaysPeopleWriteAPrice() {
+        let got = parseProductList("Hoodie - $49.99\nTee 19,50\nMug\t12\nSocks: 8.5 USD\n\nno price here\nBundle (3 pack) | $1,20")
+        XCTAssertEqual(got.map(\.name), ["Hoodie", "Tee", "Mug", "Socks", "Bundle (3 pack)"])
+        XCTAssertEqual(got.map(\.priceCents), [4_999, 1_950, 1_200, 850, 120])
+    }
+}
+
 final class SettingsTests: XCTestCase {
     func testOlderSavedSettingsStillLoad() throws {
         let old = #"{"textMode":"custom","custom":{"title":"Hi","body":"There"},"perTenSeconds":50,"platform":"shopify","when":"tenMinutes"}"#
