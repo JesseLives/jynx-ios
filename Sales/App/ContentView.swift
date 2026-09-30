@@ -14,7 +14,6 @@ private enum Palette {
 struct ContentView: View {
     @State private var s = Settings.load()
     @StateObject private var runner = Runner()
-    @State private var logo: Logo = Logo.allCases.first { $0.alternate == UIApplication.shared.alternateIconName } ?? .main
     @State private var player: AVAudioPlayer?
     @FocusState private var typing: Bool
 
@@ -24,8 +23,6 @@ struct ContentView: View {
             ScrollView {
                 VStack(spacing: 16) {
                     preview
-                    platformCard
-                    logoCard
                     textCard
                     saleCard
                     whenCard
@@ -70,7 +67,7 @@ struct ContentView: View {
     private var preview: some View {
         let sale = Sale(order: 7481, items: 1, cents: Int((s.price * 100).rounded()))
         return HStack(spacing: 12) {
-            Image(logo.thumbnail).resizable().scaledToFit().frame(width: 44, height: 44)
+            Image("logo").resizable().scaledToFit().frame(width: 44, height: 44)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             VStack(alignment: .leading, spacing: 2) {
                 Text(fill(s.text.title, sale: sale, store: s.store, product: s.product)).font(.system(size: 16, weight: .semibold)).lineLimit(1)
@@ -84,44 +81,12 @@ struct ContentView: View {
 
     // MARK: - Cards
 
-    private var platformCard: some View {
-        Card("Platform") {
-            Segments(items: Platform.allCases, label: \.label, selected: s.platform) { p in
-                s.platform = p
-                s.presetIndex = 0
-            }
-        }
-    }
-
-    private var logoCard: some View {
-        Card("App logo") {
-            Menu {
-                ForEach(Logo.allCases) { l in
-                    Button { setLogo(l) } label: {
-                        if l == logo { Label(l.label, systemImage: "checkmark") } else { Text(l.label) }
-                    }
-                }
-            } label: {
-                HStack(spacing: 12) {
-                    Image(logo.thumbnail).resizable().scaledToFit().frame(width: 40, height: 40)
-                        .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
-                    Text("Change logo").font(.system(size: 17, weight: .medium))
-                    Spacer()
-                    Image(systemName: "chevron.down").foregroundStyle(Palette.muted)
-                }
-                .foregroundStyle(.white)
-            }
-            Text("The logo is the app's icon, which iPhone shows on every notification. iPhone confirms each change with a message.")
-                .font(.footnote).foregroundStyle(Palette.muted)
-        }
-    }
-
     private var textCard: some View {
         Card("Notification text") {
             Segments(items: [TextMode.preset, .custom], label: { $0 == .preset ? "Presets" : "Custom" }, selected: s.textMode) { s.textMode = $0 }
             if s.textMode == .preset {
                 Menu {
-                    ForEach(Array(s.platform.presets.enumerated()), id: \.offset) { i, p in
+                    ForEach(Array(presets.enumerated()), id: \.offset) { i, p in
                         Button("\(p.title)\n\(p.body)") { s.presetIndex = i }
                     }
                 } label: {
@@ -153,7 +118,7 @@ struct ContentView: View {
             NumberRow(label: "Price", value: $s.price, decimals: true).focused($typing)
             NumberRow(label: "Items per order, up to", value: Binding(get: { Double(s.maxItems) }, set: { s.maxItems = max(1, min(20, Int($0))) })).focused($typing)
             Field("Store name", text: $s.store).focused($typing)
-            if s.platform == .stan || s.text.body.contains("{product}") || s.text.title.contains("{product}") {
+            if s.text.body.contains("{product}") || s.text.title.contains("{product}") {
                 Field("Product", text: $s.product).focused($typing)
             }
         }
@@ -221,13 +186,6 @@ struct ContentView: View {
     }
 
     // MARK: - Actions
-
-    private func setLogo(_ l: Logo) {
-        guard UIApplication.shared.supportsAlternateIcons else { return }
-        UIApplication.shared.setAlternateIconName(l.alternate) { error in
-            if error == nil { Task { @MainActor in logo = l } }
-        }
-    }
 
     private func play(_ sound: NotificationSound) {
         guard let url = Sounds.url(sound) else { return }

@@ -21,7 +21,6 @@ jobs:
             CURRENT_PROJECT_VERSION=${{ github.run_number }} \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" archive 2>&1 | tee build-log.txt | grep -E "error:|warning: .*Swift|ARCHIVE" || true
           test -d build/Sales.xcarchive/Products/Applications/Sales.app
-          /usr/libexec/PlistBuddy -c 'Print :CFBundleIcons:CFBundleAlternateIcons' build/Sales.xcarchive/Products/Applications/Sales.app/Info.plist
       - name: Package ipa
         run: |
           mkdir -p build/Payload && cp -R build/Sales.xcarchive/Products/Applications/Sales.app build/Payload/

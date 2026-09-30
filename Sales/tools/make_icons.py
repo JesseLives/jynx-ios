@@ -38,15 +38,16 @@ def write(path, contents, files):
     for fn, im in files.items(): im.convert("RGB").save(os.path.join(path, fn))  # app icons must not have alpha
     json.dump(contents, open(os.path.join(path, "Contents.json"), "w"), indent=2)
 
+import shutil
 os.makedirs(ASSETS, exist_ok=True)
+for old in os.listdir(ASSETS):
+    if old.endswith((".appiconset", ".imageset")): shutil.rmtree(os.path.join(ASSETS, old))
 json.dump({"info": {"author": "xcode", "version": 1}}, open(os.path.join(ASSETS, "Contents.json"), "w"), indent=2)
-for name in ["main", "shopify", "stripe", "stan"]:
-    im = icon(name)
-    setname = "AppIcon" if name == "main" else f"AppIcon-{name.capitalize()}"
-    write(os.path.join(ASSETS, f"{setname}.appiconset"),
-          {"images": [{"filename": "icon.png", "idiom": "universal", "platform": "ios", "size": "1024x1024"}], "info": {"author": "xcode", "version": 1}},
-          {"icon.png": im})
-    write(os.path.join(ASSETS, f"logo-{name}.imageset"),
-          {"images": [{"filename": "logo.png", "idiom": "universal"}], "info": {"author": "xcode", "version": 1}},
-          {"logo.png": im.resize((180, 180), Image.LANCZOS)})
+im = from_file("shopify", "#ffffff", 0.86)
+write(os.path.join(ASSETS, "AppIcon.appiconset"),
+      {"images": [{"filename": "icon.png", "idiom": "universal", "platform": "ios", "size": "1024x1024"}], "info": {"author": "xcode", "version": 1}},
+      {"icon.png": im})
+write(os.path.join(ASSETS, "logo.imageset"),
+      {"images": [{"filename": "logo.png", "idiom": "universal"}], "info": {"author": "xcode", "version": 1}},
+      {"logo.png": im.resize((180, 180), Image.LANCZOS)})
 print("icons written")
