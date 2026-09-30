@@ -48,26 +48,20 @@ final class Runner: ObservableObject {
         defer { starting = false }
         problem = nil
         guard await allowed() else { return }
-        let now = Date()
-        var at = now.addingTimeInterval(1)
-        if s.startLater {
-            guard s.startAt > now.addingTimeInterval(5) else {
-                problem = "That start time has passed. Pick a time later today or turn off \"Start at a set time\"."
-                return
-            }
-            at = s.startAt
-        }
         var rng = SystemRandomNumberGenerator()
         let base = s.badge ? Storage.badge : 0
         let first = Storage.nextOrder()
-        let new = Session(settings: s, start: at, firstOrder: first, badgeBase: base, rng: &rng)
+        guard let new = Session.plan(settings: s, now: Date(), firstOrder: first, badgeBase: base, rng: &rng) else {
+            problem = "That start time has passed. Pick a time later today or turn off \"Start at a set time\"."
+            return
+        }
         Storage.ordersUsed(upTo: first + new.total)
         center.removeAllPendingNotificationRequests()
         session = new
         scheduledUpTo = 0
         Storage.scheduledUpTo = 0
         save(force: true)
-        if s.length != .now || s.startLater { stayAwake() }
+        if new.total > 1 || new.start > Date().addingTimeInterval(5) { stayAwake() }
         if s.liveActivity { live.start(store: s.store, state: liveState(new)) }
         refill()
         startTimer()

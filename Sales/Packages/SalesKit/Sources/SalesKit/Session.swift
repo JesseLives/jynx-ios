@@ -44,17 +44,29 @@ public struct Session: Codable, Equatable, Sendable {
     public var badgeBase: Int
 
     public init<G: RandomNumberGenerator>(settings: Settings, start: Date, firstOrder: Int, badgeBase: Int, rng: inout G) {
+        let times: [Double]
+        if settings.length == .now {
+            times = [0]
+        } else if settings.pacing == .realistic {
+            switch settings.realisticMode {
+            case .window, .times:
+                times = realisticTimes(over: settings.length.seconds, per: settings.perHalfHour, window: Double(settings.windowMinutes * 60), rng: &rng)
+            case .monthly:
+                let month = Double(Int.random(in: settings.monthRange, using: &rng))
+                times = storeTimes(from: start, over: settings.length.seconds, perDay: month / 30 * 100 / max(1, settings.averageOrderCents), rng: &rng)
+            }
+        } else {
+            times = fireTimes(count: settings.count, over: settings.length.seconds, pacing: settings.pacing, rng: &rng)
+        }
+        self.init(settings: settings, start: start, times: times, firstOrder: firstOrder, badgeBase: badgeBase, rng: &rng)
+    }
+
+    public init<G: RandomNumberGenerator>(settings: Settings, start: Date, times: [Double], firstOrder: Int, badgeBase: Int, rng: inout G) {
         id = UUID()
         self.start = start
         self.settings = settings
         self.badgeBase = badgeBase
-        if settings.length == .now {
-            times = [0]
-        } else if settings.pacing == .realistic {
-            times = realisticTimes(over: settings.length.seconds, perHalfHour: settings.perHalfHour, rng: &rng)
-        } else {
-            times = fireTimes(count: settings.count, over: settings.length.seconds, pacing: settings.pacing, rng: &rng)
-        }
+        self.times = times
         let n = times.count
         let products = settings.sellable
         let most = max(1, min(10, settings.maxItems))
@@ -65,6 +77,22 @@ public struct Session: Codable, Equatable, Sendable {
             if settings.varyTotals { cents = max(1, Int((Double(cents) * Double.random(in: 0.92...1.15, using: &rng)).rounded())) }
             return Sale(order: firstOrder + i, product: p.shownName, items: items, cents: cents)
         }
+    }
+
+    public static func plan<G: RandomNumberGenerator>(settings s: Settings, now: Date, firstOrder: Int, badgeBase: Int, calendar: Calendar = .current, rng: inout G) -> Session? {
+        if s.pacing == .realistic && s.realisticMode == .times {
+            let w = timesWindow(now: now, from: s.fromMinute, to: s.toMinute, calendar: calendar)
+            let r = s.timesRange
+            let share = { (n: Int) in max(1, Int((Double(n) * w.share).rounded())) }
+            let times = spreadTimes(count: share(r.lowerBound)...share(r.upperBound), over: w.end.timeIntervalSince(w.start), rng: &rng)
+            return Session(settings: s, start: w.start, times: times, firstOrder: firstOrder, badgeBase: badgeBase, rng: &rng)
+        }
+        var at = now.addingTimeInterval(1)
+        if s.startLater {
+            guard s.startAt > now.addingTimeInterval(5) else { return nil }
+            at = s.startAt
+        }
+        return Session(settings: s, start: at, firstOrder: firstOrder, badgeBase: badgeBase, rng: &rng)
     }
 
     public var total: Int { times.count }

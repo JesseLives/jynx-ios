@@ -177,9 +177,9 @@ struct ContentView: View {
         textCard
         productsCard
         whenCard
-        if s.length != .now {
+        if s.length != .now || byTimes {
             pacingCard
-            if s.pacing == .realistic { halfHourCard } else { rateCard }
+            if s.pacing == .realistic { realisticCard } else { rateCard }
         }
         soundCard
         extrasCard
@@ -343,6 +343,9 @@ struct ContentView: View {
 
     private var whenCard: some View {
         Card("When to send") {
+            if byTimes {
+                Text("Realistic, set times: the start and end times below decide when it runs.").font(.subheadline).foregroundStyle(Palette.muted)
+            } else {
             Segments(items: SessionLength.allCases, columns: 3, label: { $0.label }, id: { "length-\($0.rawValue)" }, selected: s.length) { s.length = $0 }
             Toggle(isOn: Binding(get: { s.startLater }, set: { on in
                 s.startLater = on
@@ -359,6 +362,7 @@ struct ContentView: View {
                 DatePicker("Starts", selection: $s.startAt, in: Date()..., displayedComponents: [.date, .hourAndMinute])
                     .font(.system(size: 17))
                     .accessibilityIdentifier("startAtPicker")
+            }
             }
         }
     }
@@ -387,20 +391,62 @@ struct ContentView: View {
         }
     }
 
-    private var halfHourCard: some View {
-        Card("Orders per 30 minutes") {
-            HStack(spacing: 10) {
-                WholeNumberRow(label: "From", value: $s.perHalfHourLow, range: 0...500, focus: $typing, id: "halfHourLow")
-                WholeNumberRow(label: "To", value: $s.perHalfHourHigh, range: 1...500, focus: $typing, id: "halfHourHigh")
+    private var byTimes: Bool { s.pacing == .realistic && s.realisticMode == .times }
+
+    private var realisticCard: some View {
+        Card("Realistic") {
+            Segments(items: RealisticMode.allCases, label: { m in m == .window ? "Every" : m == .times ? "Set times" : "Monthly" },
+                     id: { "realistic-\($0.rawValue)" }, selected: s.realisticMode) { s.realisticMode = $0 }
+            switch s.realisticMode {
+            case .window:
+                HStack(spacing: 10) {
+                    WholeNumberRow(label: "From", value: $s.perHalfHourLow, range: 0...500, focus: $typing, id: "halfHourLow")
+                    WholeNumberRow(label: "To", value: $s.perHalfHourHigh, range: 1...500, focus: $typing, id: "halfHourHigh")
+                }
+                Segments(items: [10, 30, 60], label: { $0 == 60 ? "every hour" : "every \($0) min" }, id: { "window-\($0)" },
+                         selected: s.windowMinutes) { s.windowMinutes = $0 }
+            case .times:
+                HStack(spacing: 10) {
+                    WholeNumberRow(label: "From", value: $s.timesLow, range: 1...Limits.maxPerSession, focus: $typing, id: "timesLow")
+                    WholeNumberRow(label: "To", value: $s.timesHigh, range: 1...Limits.maxPerSession, focus: $typing, id: "timesHigh")
+                }
+                DatePicker("Starts", selection: clock($s.fromMinute), displayedComponents: .hourAndMinute).accessibilityIdentifier("timesFrom")
+                DatePicker("Ends", selection: clock($s.toMinute), displayedComponents: .hourAndMinute).accessibilityIdentifier("timesTo")
+            case .monthly:
+                HStack(spacing: 10) {
+                    WholeNumberRow(label: "$", value: $s.monthLow, range: 0...10_000_000, focus: $typing, id: "monthLow")
+                    WholeNumberRow(label: "to $", value: $s.monthHigh, range: 1...10_000_000, focus: $typing, id: "monthHigh")
+                }
             }
-            Text(halfHourLine).font(.subheadline).foregroundStyle(Palette.muted).accessibilityIdentifier("countLine")
+            Text(realisticLine).font(.subheadline).foregroundStyle(Palette.muted).accessibilityIdentifier("countLine")
         }
     }
 
-    private var halfHourLine: String {
-        let r = s.perHalfHour
-        let each = r.lowerBound == r.upperBound ? "\(r.lowerBound)" : "\(r.lowerBound) to \(r.upperBound)"
-        return "About \(s.expectedCount.formatted()) orders \(s.length.span): \(each) every 30 minutes, at random times"
+    private var realisticLine: String {
+        switch s.realisticMode {
+        case .window:
+            let r = s.perHalfHour
+            let each = r.lowerBound == r.upperBound ? "\(r.lowerBound)" : "\(r.lowerBound) to \(r.upperBound)"
+            let every = s.windowMinutes == 60 ? "every hour" : "every \(s.windowMinutes) minutes"
+            return "About \(s.expectedCount.formatted()) orders \(s.length.span): \(each) \(every), at random times"
+        case .times:
+            let r = s.timesRange
+            let t = Date.FormatStyle(date: .omitted, time: .shortened)
+            let hours = Double((s.toMinute - s.fromMinute + 1_440) % 1_440 == 0 ? 1_440 : (s.toMinute - s.fromMinute + 1_440) % 1_440) / 60
+            return "\(r.lowerBound == r.upperBound ? "\(r.lowerBound)" : "\(r.lowerBound) to \(r.upperBound)") orders between \(clockDate(s.fromMinute).formatted(t)) and \(clockDate(s.toMinute).formatted(t)) (\(hours.formatted(.number.precision(.fractionLength(0...1)))) hours), at random times. It starts by itself."
+        case .monthly:
+            let perDay = s.ordersPerDay
+            let day = Int((Double(s.monthRange.lowerBound + s.monthRange.upperBound) / 2 / 30).rounded())
+            return "About \(perDay.formatted(.number.precision(.fractionLength(0...1)))) orders a day at your prices (about $\(day.formatted()) a day): quiet overnight, busiest in the evening. About \(s.expectedCount.formatted()) \(s.length.span)."
+        }
+    }
+
+    private func clockDate(_ minutes: Int) -> Date { Calendar.current.startOfDay(for: Date()).addingTimeInterval(Double(minutes) * 60) }
+    private func clock(_ minutes: Binding<Int>) -> Binding<Date> {
+        Binding(get: { clockDate(minutes.wrappedValue) }, set: {
+            let c = Calendar.current.dateComponents([.hour, .minute], from: $0)
+            minutes.wrappedValue = (c.hour ?? 0) * 60 + (c.minute ?? 0)
+        })
     }
 
     private var soundCard: some View {
@@ -450,7 +496,7 @@ struct ContentView: View {
 
     @ViewBuilder private var bottom: some View {
         if !runner.running {
-            BigButton(title: s.startLater ? "Schedule" : "Start", color: Palette.start, id: "startButton") {
+            BigButton(title: s.startLater || byTimes ? "Schedule" : "Start", color: Palette.start, id: "startButton") {
                 typing = false
                 Task { await runner.start(s) }
             }

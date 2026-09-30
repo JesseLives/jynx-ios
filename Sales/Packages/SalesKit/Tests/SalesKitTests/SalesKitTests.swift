@@ -18,7 +18,7 @@ final class ScheduleTests: XCTestCase {
         XCTAssertEqual(sessionCount(length: .tenMinutes, perTenSeconds: 10), 600)
         XCTAssertEqual(sessionCount(length: .oneMinute, perTenSeconds: 10), 60)
         XCTAssertEqual(sessionCount(length: .now, perTenSeconds: 400), 1)
-        XCTAssertEqual(sessionCount(length: .allDay, perTenSeconds: 1), 4_320)
+        XCTAssertEqual(sessionCount(length: .allDay, perTenSeconds: 1), 5_000)   // 8,640 over 24 hours, capped
         XCTAssertEqual(sessionCount(length: .oneMinute, perTenSeconds: 0), 6)           // rate floors at 1
         XCTAssertEqual(sessionCount(length: .oneMinute, perTenSeconds: 99_999), 3_000)  // rate caps at 500
     }
@@ -55,7 +55,7 @@ final class RealisticTests: XCTestCase {
     func testFiveToTenInEveryHalfHourAtRandomTimes() {
         for seed: UInt64 in [1, 2, 3, 7, 11] {
             var g = Seeded(s: seed)
-            let t = realisticTimes(over: 12 * 3_600, perHalfHour: 5...10, rng: &g)
+            let t = realisticTimes(over: 12 * 3_600, per: 5...10, rng: &g)
             XCTAssertEqual(t, t.sorted())
             XCTAssertGreaterThanOrEqual(t.first!, 0)
             XCTAssertLessThan(t.last!, 12 * 3_600)
@@ -73,15 +73,15 @@ final class RealisticTests: XCTestCase {
         var total = 0
         for seed: UInt64 in 1...200 {
             var g = Seeded(s: seed)
-            let t = realisticTimes(over: 600, perHalfHour: 5...10, rng: &g)   // a third of a half hour
+            let t = realisticTimes(over: 600, per: 5...10, rng: &g)   // a third of a half hour
             XCTAssertTrue((1...4).contains(t.count), "\(t.count)")
             XCTAssertTrue(t.allSatisfy { $0 >= 0 && $0 < 600 })
             total += t.count
         }
         XCTAssertEqual(Double(total) / 200, 2.5, accuracy: 0.35, "on average a third of 7.5")
         var g = Seeded(s: 1)
-        XCTAssertEqual(realisticTimes(over: 1_800, perHalfHour: 0...0, rng: &g).count, 1, "never an empty session")
-        XCTAssertEqual(realisticTimes(over: 1_800, perHalfHour: 3...3, rng: &g).count, 3)
+        XCTAssertEqual(realisticTimes(over: 1_800, per: 0...0, rng: &g).count, 1, "never an empty session")
+        XCTAssertEqual(realisticTimes(over: 1_800, per: 3...3, rng: &g).count, 3)
     }
 
     func testSessionUsesRealisticPacingAndItsOwnCount() {
@@ -95,6 +95,89 @@ final class RealisticTests: XCTestCase {
         XCTAssertTrue((10...20).contains(session.total))
         XCTAssertEqual(session.sales.count, session.total)
         XCTAssertEqual(session.sales.last?.order, 100 + session.total - 1)
+    }
+}
+
+final class RealisticModesTests: XCTestCase {
+    var utc: Calendar { var c = Calendar(identifier: .gregorian); c.timeZone = TimeZone(identifier: "UTC")!; return c }
+    func at(_ h: Int, _ m: Int = 0, day: Int = 30) -> Date { utc.date(from: DateComponents(year: 2026, month: 9, day: day, hour: h, minute: m))! }
+
+    func testThirteenToTwentyEightEveryTenMinutes() {
+        for seed: UInt64 in [1, 2, 3] {
+            var g = Seeded(s: seed)
+            let t = realisticTimes(over: 3_600, per: 13...28, window: 600, rng: &g)
+            for block in 0..<6 {
+                let n = t.filter { $0 >= Double(block) * 600 && $0 < Double(block + 1) * 600 }.count
+                XCTAssertTrue((13...28).contains(n), "10 minutes \(block): \(n)")
+            }
+        }
+    }
+
+    func testBetweenSetTimesPicksACountFromTheRange() {
+        var counts = Set<Int>()
+        for seed: UInt64 in 1...60 {
+            var g = Seeded(s: seed)
+            let t = spreadTimes(count: 39...74, over: 8 * 3_600, rng: &g)
+            XCTAssertTrue((39...74).contains(t.count))
+            XCTAssertEqual(t, t.sorted())
+            XCTAssertTrue(t.allSatisfy { $0 >= 0 && $0 < 8 * 3_600 })
+            counts.insert(t.count)
+        }
+        XCTAssertGreaterThan(counts.count, 15, "not the same count every night")
+    }
+
+    func testTheWindowOvernightAndDuringTheDay() {
+        let night = (from: 23 * 60, to: 7 * 60)
+        var w = timesWindow(now: at(20), from: night.from, to: night.to, calendar: utc)      // evening: tonight's, whole
+        XCTAssertEqual([w.start, w.end], [at(23), at(7, day: 31)]); XCTAssertEqual(w.share, 1)
+        w = timesWindow(now: at(3), from: night.from, to: night.to, calendar: utc)
+        XCTAssertEqual([w.start, w.end], [at(3), at(7)]); XCTAssertEqual(w.share, 0.5, accuracy: 1e-9)
+        w = timesWindow(now: at(10), from: night.from, to: night.to, calendar: utc)          // morning: tonight's
+        XCTAssertEqual(w.start, at(23))
+        w = timesWindow(now: at(18), from: 9 * 60, to: 17 * 60, calendar: utc)              // a day window, over: tomorrow's
+        XCTAssertEqual([w.start, w.end], [at(9, day: 31), at(17, day: 31)])
+    }
+
+    func testAPlanBetweenSetTimesStartsByItselfOrTakesItsShare() {
+        var s = Settings()
+        s.pacing = .realistic; s.realisticMode = .times; s.timesLow = 40; s.timesHigh = 40; s.fromMinute = 23 * 60; s.toMinute = 7 * 60
+        var g = Seeded(s: 1)
+        let later = Session.plan(settings: s, now: at(20), firstOrder: 1, badgeBase: 0, calendar: utc, rng: &g)!
+        XCTAssertEqual(later.start, at(23))
+        XCTAssertEqual(later.total, 40)
+        XCTAssertLessThan(later.times.last!, 8 * 3_600)
+        let midway = Session.plan(settings: s, now: at(3), firstOrder: 1, badgeBase: 0, calendar: utc, rng: &g)!
+        XCTAssertEqual(midway.start, at(3))
+        XCTAssertEqual(midway.total, 20, "half the night left: half the orders")
+        XCTAssertEqual(s.expectedCount, 40)
+    }
+
+    func testAMonthlyStoreSellsItsShareBusiestInTheEvening() {
+        var s = Settings()
+        s.pacing = .realistic; s.realisticMode = .monthly; s.monthLow = 20_000; s.monthHigh = 20_000
+        s.products = [Product(name: "Tee", priceCents: 4_000)]; s.maxItems = 1; s.varyTotals = false
+        XCTAssertEqual(s.ordersPerDay, 20_000.0 / 30 / 40, accuracy: 1e-9)        // about 16.7 a day
+        var night = 0, evening = 0, total = 0
+        for seed: UInt64 in 1...40 {
+            var g = Seeded(s: seed)
+            let t = storeTimes(from: at(0), over: 86_400, perDay: s.ordersPerDay, calendar: utc, rng: &g)
+            total += t.count
+            night += t.filter { $0 >= 2 * 3_600 && $0 < 5 * 3_600 }.count
+            evening += t.filter { $0 >= 19 * 3_600 && $0 < 22 * 3_600 }.count
+        }
+        XCTAssertEqual(Double(total) / 40, s.ordersPerDay, accuracy: 2.5, "a day's worth on average")
+        XCTAssertGreaterThan(evening, night * 4, "evenings far busier than 2-5 AM")
+        s.length = .allDay
+        XCTAssertEqual(s.expectedCount, 17)
+        XCTAssertEqual(dayCurve.reduce(0, +) / 24, 1, accuracy: 1e-9)
+    }
+
+    func testOlderSettingsGetTheNewDefaults() throws {
+        let s = try JSONDecoder().decode(Settings.self, from: Data(#"{"pacing":"realistic","perHalfHourLow":5,"perHalfHourHigh":10}"#.utf8))
+        XCTAssertEqual(s.realisticMode, .window)
+        XCTAssertEqual(s.windowMinutes, 30)
+        XCTAssertEqual([s.timesLow, s.timesHigh, s.fromMinute, s.toMinute], [39, 74, 23 * 60, 7 * 60])
+        XCTAssertEqual([s.monthLow, s.monthHigh], [10_000, 30_000])
     }
 }
 

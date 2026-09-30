@@ -68,8 +68,16 @@ public struct Settings: Codable, Equatable, Sendable {
     public var length: SessionLength = .tenMinutes
     public var perTenSeconds = 100
     public var pacing: Pacing = .variable
+    public var realisticMode: RealisticMode = .window
     public var perHalfHourLow = 5
     public var perHalfHourHigh = 10
+    public var windowMinutes = 30
+    public var timesLow = 39
+    public var timesHigh = 74
+    public var fromMinute = 23 * 60
+    public var toMinute = 7 * 60
+    public var monthLow = 10_000
+    public var monthHigh = 30_000
     public var sound: SoundChoice = .shopify
     public var badge = true
     public var liveActivity = true
@@ -95,11 +103,38 @@ public struct Settings: Codable, Equatable, Sendable {
         }
     }
 
+    public var timesRange: ClosedRange<Int> { ordered(timesLow, timesHigh, most: Limits.maxPerSession) }
+    public var monthRange: ClosedRange<Int> { ordered(monthLow, monthHigh, most: 100_000_000) }
+    private func ordered(_ a: Int, _ b: Int, most: Int) -> ClosedRange<Int> {
+        let x = max(0, min(most, a)), y = max(0, min(most, b))
+        return min(x, y)...max(x, y)
+    }
+
+    public var averageOrderCents: Double {
+        let p = sellable
+        let price = Double(p.reduce(0) { $0 + $1.priceCents }) / Double(p.count)
+        return price * Double(1 + max(1, min(10, maxItems))) / 2 * (varyTotals ? 1.035 : 1)
+    }
+
+    public var ordersPerDay: Double {
+        let m = monthRange
+        return Double(m.lowerBound + m.upperBound) / 2 / 30 * 100 / max(1, averageOrderCents)
+    }
+
     public var expectedCount: Int {
-        guard length != .now else { return 1 }
+        guard length != .now || (pacing == .realistic && realisticMode == .times) else { return 1 }
         guard pacing == .realistic else { return count }
-        let r = perHalfHour
-        return max(1, min(Limits.maxPerSession, Int((Double(r.lowerBound + r.upperBound) / 2 * length.seconds / 1_800).rounded())))
+        let n: Double
+        switch realisticMode {
+        case .window:
+            let r = perHalfHour
+            n = Double(r.lowerBound + r.upperBound) / 2 * length.seconds / Double(max(1, windowMinutes) * 60)
+        case .times:
+            n = Double(timesRange.lowerBound + timesRange.upperBound) / 2
+        case .monthly:
+            n = ordersPerDay * length.seconds / 86_400
+        }
+        return max(1, min(Limits.maxPerSession, Int(n.rounded())))
     }
 
     public var sellable: [Product] {
@@ -109,6 +144,7 @@ public struct Settings: Codable, Equatable, Sendable {
 
     enum CodingKeys: String, CodingKey {
         case textMode, presetIndex, custom, products, maxItems, varyTotals, store, length, perTenSeconds, pacing, perHalfHourLow, perHalfHourHigh
+        case realisticMode, windowMinutes, timesLow, timesHigh, fromMinute, toMinute, monthLow, monthHigh
         case sound, badge, liveActivity, startLater, startAt
     }
 
@@ -127,6 +163,14 @@ public struct Settings: Codable, Equatable, Sendable {
         pacing = (try? c.decode(Pacing.self, forKey: .pacing)) ?? d.pacing
         perHalfHourLow = (try? c.decode(Int.self, forKey: .perHalfHourLow)) ?? d.perHalfHourLow
         perHalfHourHigh = (try? c.decode(Int.self, forKey: .perHalfHourHigh)) ?? d.perHalfHourHigh
+        realisticMode = (try? c.decode(RealisticMode.self, forKey: .realisticMode)) ?? d.realisticMode
+        windowMinutes = (try? c.decode(Int.self, forKey: .windowMinutes)) ?? d.windowMinutes
+        timesLow = (try? c.decode(Int.self, forKey: .timesLow)) ?? d.timesLow
+        timesHigh = (try? c.decode(Int.self, forKey: .timesHigh)) ?? d.timesHigh
+        fromMinute = (try? c.decode(Int.self, forKey: .fromMinute)) ?? d.fromMinute
+        toMinute = (try? c.decode(Int.self, forKey: .toMinute)) ?? d.toMinute
+        monthLow = (try? c.decode(Int.self, forKey: .monthLow)) ?? d.monthLow
+        monthHigh = (try? c.decode(Int.self, forKey: .monthHigh)) ?? d.monthHigh
         sound = (try? c.decode(SoundChoice.self, forKey: .sound)) ?? d.sound
         badge = (try? c.decode(Bool.self, forKey: .badge)) ?? d.badge
         liveActivity = (try? c.decode(Bool.self, forKey: .liveActivity)) ?? d.liveActivity
