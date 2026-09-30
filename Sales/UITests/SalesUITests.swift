@@ -31,6 +31,15 @@ final class SalesUITests: XCTestCase {
         }
         reveal(app.staticTexts["countLine"])
         XCTAssertEqual(app.staticTexts["countLine"].label, "600 notifications over 1 minute")
+        reveal(app.buttons["length-tenMinutes"])
+        app.buttons["length-tenMinutes"].tap()
+        let rate = app.textFields["rateField"]
+        reveal(rate)
+        rate.tap()
+        rate.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: 4) + "10")
+        dismissKeyboard()
+        reveal(app.staticTexts["countLine"])
+        XCTAssertEqual(app.staticTexts["countLine"].label, "600 notifications over 10 minutes")
         shot("03 timing")
 
         reveal(app.switches["startLaterToggle"])
@@ -67,9 +76,15 @@ final class SalesUITests: XCTestCase {
         expectation(for: counting, evaluatedWith: orders)
         waitForExpectations(timeout: 30)
         XCTAssertNotEqual(app.staticTexts["todayTotal"].label, "$0.00")
-        XCTAssertTrue(app.staticTexts["progressText"].label.hasPrefix("Sent "))
+        XCTAssertTrue(app.staticTexts["progressText"].label.hasPrefix("Sent "), app.staticTexts["progressText"].label)
+        XCTAssertTrue(app.staticTexts["progressText"].label.contains("of 600"), app.staticTexts["progressText"].label)
         sleep(3)
         shot("07 running")
+        XCUIDevice.shared.press(.home)
+        sleep(4)
+        shot("07b home screen", in: XCUIApplication(bundleIdentifier: "com.apple.springboard"))
+        app.activate()
+        XCTAssertTrue(app.buttons["stopButton"].waitForExistence(timeout: 5), "still running after the background")
 
         let totalBeforeStop = app.staticTexts["todayTotal"].label
         app.buttons["stopButton"].tap()
