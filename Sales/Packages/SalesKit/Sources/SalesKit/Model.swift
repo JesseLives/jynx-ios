@@ -27,6 +27,7 @@ public struct NotificationText: Codable, Hashable, Sendable {
 }
 
 public let presets: [NotificationText] = [
+    NotificationText(title: "New order", body: "[{store}] You have a new order for {items} totaling {amount} from Online Store."),
     NotificationText(title: "Order #{order} from Shopify", body: "{amount}, {items} from Online Store - {store}"),
     NotificationText(title: "Order #{order}", body: "{amount}, {items} from {store}"),
     NotificationText(title: "Order #{order} from Shopify", body: "{amount}, {product} from Online Store - {store}"),
@@ -59,9 +60,10 @@ public enum SoundChoice: String, Codable, CaseIterable, Identifiable, Sendable {
 public struct Settings: Codable, Equatable, Sendable {
     public var textMode: TextMode = .preset
     public var presetIndex = 0
-    public var custom = NotificationText(title: "Order #{order} from Shopify", body: "{amount}, {items} from Online Store - {store}")
+    public var custom = NotificationText(title: "New order", body: "[{store}] You have a new order for {items} totaling {amount} from Online Store.")
     public var products: [Product] = [Product(name: "My Product", priceCents: 3_899)]
     public var maxItems = 1
+    public var varyTotals = true
     public var store = "My Store"
     public var length: SessionLength = .tenMinutes
     public var perTenSeconds = 100
@@ -106,7 +108,7 @@ public struct Settings: Codable, Equatable, Sendable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case textMode, presetIndex, custom, products, maxItems, store, length, perTenSeconds, pacing, perHalfHourLow, perHalfHourHigh
+        case textMode, presetIndex, custom, products, maxItems, varyTotals, store, length, perTenSeconds, pacing, perHalfHourLow, perHalfHourHigh
         case sound, badge, liveActivity, startLater, startAt
     }
 
@@ -118,6 +120,7 @@ public struct Settings: Codable, Equatable, Sendable {
         custom = (try? c.decode(NotificationText.self, forKey: .custom)) ?? d.custom
         products = (try? c.decode([Product].self, forKey: .products)) ?? d.products
         maxItems = (try? c.decode(Int.self, forKey: .maxItems)) ?? d.maxItems
+        varyTotals = (try? c.decode(Bool.self, forKey: .varyTotals)) ?? d.varyTotals
         store = (try? c.decode(String.self, forKey: .store)) ?? d.store
         length = (try? c.decode(SessionLength.self, forKey: .length)) ?? d.length
         perTenSeconds = (try? c.decode(Int.self, forKey: .perTenSeconds)) ?? d.perTenSeconds

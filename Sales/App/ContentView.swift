@@ -300,8 +300,17 @@ struct ContentView: View {
             }
             .padding(.horizontal, 14).padding(.vertical, 8)
             .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Palette.field))
+            Toggle(isOn: $s.varyTotals) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Vary totals a little").font(.system(size: 17, weight: .semibold))
+                    Text("Tax, shipping and discounts make real totals uneven, like $49.22").font(.system(size: 14)).foregroundStyle(Palette.muted)
+                }
+            }
+            .tint(Palette.blue)
+            .accessibilityIdentifier("varyTotals")
             Field(label: "Store name", text: $s.store).focused($typing)
-            Text("Each order picks one product at random.").font(.footnote).foregroundStyle(Palette.muted)
+            Text("Each order picks one product at random. The store name shows in brackets, like [BYMAR].")
+                .font(.footnote).foregroundStyle(Palette.muted)
         }
     }
 

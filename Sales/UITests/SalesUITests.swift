@@ -13,6 +13,9 @@ final class SalesUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["todayTotal"].waitForExistence(timeout: 10))
         XCTAssertEqual(app.staticTexts["todayTotal"].label, "$0.00")
         XCTAssertEqual(app.staticTexts["todayOrders"].label, "0 orders")
+        let preview = app.descendants(matching: .any)["preview"]
+        XCTAssertTrue(preview.label.contains("New order"), preview.label)
+        XCTAssertTrue(preview.label.contains("[My Store] You have a new order for 1 item totaling $38.99 from Online Store."), preview.label)
         shot("01 top")
 
         reveal(app.buttons["addProduct"])

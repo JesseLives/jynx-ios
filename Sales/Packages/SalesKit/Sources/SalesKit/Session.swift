@@ -60,7 +60,9 @@ public struct Session: Codable, Equatable, Sendable {
         sales = (0..<n).map { i in
             let p = products[Int.random(in: 0..<products.count, using: &rng)]
             let items = Int.random(in: 1...most, using: &rng)
-            return Sale(order: firstOrder + i, product: p.shownName, items: items, cents: p.priceCents * items)
+            var cents = p.priceCents * items
+            if settings.varyTotals { cents = max(1, Int((Double(cents) * Double.random(in: 0.92...1.15, using: &rng)).rounded())) }
+            return Sale(order: firstOrder + i, product: p.shownName, items: items, cents: cents)
         }
     }
 

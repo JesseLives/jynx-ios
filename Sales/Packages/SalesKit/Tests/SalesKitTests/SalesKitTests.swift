@@ -99,10 +99,19 @@ final class RealisticTests: XCTestCase {
 }
 
 final class TextTests: XCTestCase {
-    func testTheScreenshotNotification() {
+    func testTheRealShopifyNotificationIsTheDefault() {
+        let s = Settings()
+        XCTAssertEqual(s.text.title, "New order")
+        let one = Sale(order: 7481, product: "Tee", items: 1, cents: 5_154)
+        XCTAssertEqual(fill(s.text.body, sale: one, store: "BYMAR"), "[BYMAR] You have a new order for 1 item totaling $51.54 from Online Store.")
+        let seven = Sale(order: 7482, product: "Tee", items: 7, cents: 28_592)
+        XCTAssertEqual(fill(s.text.body, sale: seven, store: "BYMAR"), "[BYMAR] You have a new order for 7 items totaling $285.92 from Online Store.")
+    }
+
+    func testTheLarpStyleNotificationIsStillThere() {
         let sale = Sale(order: 7481, product: "My Product", items: 1, cents: 3_899)
-        XCTAssertEqual(fill(presets[0].title, sale: sale, store: "My Store"), "Order #7481 from Shopify")
-        XCTAssertEqual(fill(presets[0].body, sale: sale, store: "My Store"), "$38.99, 1 item from Online Store - My Store")
+        XCTAssertEqual(fill(presets[1].title, sale: sale, store: "My Store"), "Order #7481 from Shopify")
+        XCTAssertEqual(fill(presets[1].body, sale: sale, store: "My Store"), "$38.99, 1 item from Online Store - My Store")
     }
 
     func testPluralsAndProducts() {
@@ -137,6 +146,7 @@ final class SessionTests: XCTestCase {
         let s = settings {
             $0.products = [Product(name: "Hoodie", priceCents: 4_999), Product(name: "Cap", priceCents: 2_400), Product(name: "Free", priceCents: 0)]
             $0.maxItems = 3
+            $0.varyTotals = false
         }
         var g = Seeded(s: 9)
         let start = Date(timeIntervalSince1970: 1_000_000)
@@ -174,8 +184,22 @@ final class SessionTests: XCTestCase {
     func testNotificationTextMatchesTheSale() {
         var g = Seeded(s: 3)
         let session = Session(settings: settings { $0.store = "Drip Co" }, start: Date(), firstOrder: 1_000, badgeBase: 0, rng: &g)
-        XCTAssertEqual(session.title(4), "Order #1004 from Shopify")
-        XCTAssertEqual(session.body(4), "\(money(session.sales[4].cents)), \(session.sales[4].items == 1 ? "1 item" : "\(session.sales[4].items) items") from Online Store - Drip Co")
+        let sale = session.sales[4]
+        XCTAssertEqual(session.title(4), "New order")
+        XCTAssertEqual(session.body(4), "[Drip Co] You have a new order for \(sale.items == 1 ? "1 item" : "\(sale.items) items") totaling \(money(sale.cents)) from Online Store.")
+    }
+
+    func testTotalsVaryLikeTaxAndShippingOrStayExact() {
+        var g = Seeded(s: 8)
+        let varied = Session(settings: settings { $0.products = [Product(name: "Tee", priceCents: 5_000)]; $0.varyTotals = true },
+                             start: Date(), firstOrder: 1, badgeBase: 0, rng: &g)
+        XCTAssertTrue(varied.sales.allSatisfy { (4_600...5_750).contains($0.cents) }, "within -8% and +15% of $50.00")
+        XCTAssertGreaterThan(Set(varied.sales.map { $0.cents }).count, 30, "uneven cents, not one repeated price")
+        XCTAssertTrue(varied.sales.contains { $0.cents % 100 != 0 })
+        let exact = Session(settings: settings { $0.products = [Product(name: "Tee", priceCents: 5_000)]; $0.varyTotals = false },
+                            start: Date(), firstOrder: 1, badgeBase: 0, rng: &g)
+        XCTAssertTrue(exact.sales.allSatisfy { $0.cents == 5_000 * $0.items })
+        XCTAssertTrue(Settings().varyTotals, "on by default")
     }
 
     func testBadgeCountsUpAndRestartsAfterAClear() {
