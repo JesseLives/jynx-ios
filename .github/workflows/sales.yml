@@ -1,0 +1,33 @@
+name: sales
+on:
+  push:
+    branches: [main]
+    paths: ["Sales/**", ".github/workflows/sales.yml"]
+  workflow_dispatch: {}
+jobs:
+  ipa:
+    runs-on: macos-26
+    timeout-minutes: 30
+    defaults: { run: { working-directory: Sales } }
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate project
+        run: brew install xcodegen && xcodegen generate
+      - name: Archive (unsigned)
+        run: |
+          set -o pipefail
+          xcodebuild -project Sales.xcodeproj -scheme Sales -configuration Release \
+            -destination 'generic/platform=iOS' -archivePath build/Sales.xcarchive \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }} \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" archive 2>&1 | tee build-log.txt | grep -E "error:|warning: .*Swift|ARCHIVE" || true
+          test -d build/Sales.xcarchive/Products/Applications/Sales.app
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleIcons:CFBundleAlternateIcons' build/Sales.xcarchive/Products/Applications/Sales.app/Info.plist
+      - name: Package ipa
+        run: |
+          mkdir -p build/Payload && cp -R build/Sales.xcarchive/Products/Applications/Sales.app build/Payload/
+          cd build && zip -qry Sales.ipa Payload && ls -la Sales.ipa
+      - uses: actions/upload-artifact@v4
+        with: { name: Sales-ipa, path: Sales/build/Sales.ipa, retention-days: 30 }
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with: { name: sales-build-log, path: Sales/build-log.txt, retention-days: 7 }

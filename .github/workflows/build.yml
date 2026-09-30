@@ -1,6 +1,8 @@
 name: build
 on:
-  push: { branches: [main] }
+  push:
+    branches: [main]
+    paths-ignore: ["Sales/**", ".github/workflows/sales.yml"]
   workflow_dispatch: {}
 jobs:
   ipa:
