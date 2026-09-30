@@ -1,5 +1,6 @@
 import ActivityKit
 import Foundation
+import UIKit
 
 @MainActor
 final class LiveTotal {
@@ -27,7 +28,8 @@ final class LiveTotal {
     }
 
     func flush() {
-        guard let activity, let state = pending, Date().timeIntervalSince(lastSent) >= 1 else { return }
+        let every: TimeInterval = UIApplication.shared.applicationState == .active ? 1 : 15
+        guard let activity, let state = pending, Date().timeIntervalSince(lastSent) >= every else { return }
         pending = nil
         lastSent = Date()
         Task { await activity.update(ActivityContent(state: state, staleDate: nil)) }
