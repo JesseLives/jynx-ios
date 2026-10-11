@@ -2,7 +2,7 @@ name: build
 on:
   push:
     branches: [main]
-    paths-ignore: ["Sales/**", ".github/workflows/sales.yml", "Blox/**", ".github/workflows/blox.yml", "codemagic.yaml", "ops/cm-blox.sh"]
+    paths-ignore: ["Sales/**", ".github/workflows/sales.yml", "Blox/**", ".github/workflows/blox.yml"]
   workflow_dispatch: {}
 jobs:
   ipa:
