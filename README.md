@@ -4,7 +4,6 @@ my ios apps. swiftui, built unsigned on github actions, installed with sideloadl
 
 - `App/` jynx
 - `Sales/`
-- `Blox/`
 
 logic lives in the kits and has tests:
 
