@@ -1,14 +1,14 @@
 # jynx-ios
 
-my ios apps. swiftui, built unsigned on github actions, installed with sideloadly.
+iOS apps written in SwiftUI. They are built unsigned on GitHub Actions and installed with Sideloadly.
 
-- `App/` jynx
+- `App/` Jynx
 - `Sales/`
 
-logic lives in the kits and has tests:
+The logic lives in the Swift packages, which have tests:
 
 ```
 cd Packages/JynxKit && swift test
 ```
 
-free apple id signs for 7 days, then reinstall.
+A free Apple ID signs an app for 7 days, after that it has to be reinstalled.
